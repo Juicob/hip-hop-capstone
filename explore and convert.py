@@ -19,7 +19,8 @@ import numpy as np
 # ! album_path = r"..\capstone-audio\jayz\reasonable-doubt\""
 # ! for file in osdir(album_path):
 # !     do them shits
-file = r"..\capstone-audio\jayz\reasonable-doubt\Cashmere Thoughts-Vf2LNPFLPAE.m4a"
+file = r"..\capstone-audio\jayz\JAY-Z - Girls, Girls, Girls (Audio )-h2fNacQU1jY.mp3"
+# file = r"..\capstone-audio\jayz\reasonable-doubt\Cashmere Thoughts-Vf2LNPFLPAE.m4a"
 
 signal, sr = librosa.load(file, sr = 22050)
 # %%

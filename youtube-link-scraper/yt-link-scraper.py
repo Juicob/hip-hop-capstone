@@ -12,8 +12,9 @@ import json
 options = webdriver.ChromeOptions()
 options.add_argument ("lang = en_us")
 options.page_load_strategy = 'eager'
-options.add_argument("--headless")
+# options.add_argument("--headless")
 driver = webdriver.Chrome(executable_path='chromedriver.exe',options = options)
+driver.set_window_size(800, 600)
 driver.set_window_position(-1500, 100)
 
 def csss(parent, sel):
@@ -48,7 +49,9 @@ def scrape_tracks():
     return tracks
 
 playlist_urls = [
-    'https://www.youtube.com/playlist?list=PLJ808X3foyC7q4qwNDCNuuQL7m-4natMj',
+    'https://www.youtube.com/playlist?list=PL61YjVa1b9jkCMdfftZt9GbnGVwfyXuTP',
+    'https://www.youtube.com/playlist?list=PLr1fYOvQFfPfHp8f_RhLjTBFqaU0lRSF_&pbjreload=102',
+    'https://www.youtube.com/playlist?list=PLSwyLbwxPYdBGRoAhaIxs8b_OAuF5bGPB',
 
     ]
 
@@ -66,7 +69,7 @@ print(tracks_df.head())
 print(f'{tracks_df["track_title"].count()} items scraped')
 print('Exporting df to csv')
 
-save_path = r'D:\Python_Projects\flatiron\class-materials\hip-hop-capstone\youtube-link-scraper\reasonable_doubt_jayz' + str(date.today()).replace('-','') + '.csv'
+save_path = r'D:\Python_Projects\flatiron\class-materials\hip-hop-capstone\youtube-link-scraper\jayz-yt-links' + str(date.today()).replace('-','') + '.csv'
 print(f'Saved to - {save_path}')
 tracks_df.to_csv(f'{save_path}', index = False, encoding='utf-8-sig')
     
