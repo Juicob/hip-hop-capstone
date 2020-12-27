@@ -9,26 +9,41 @@ audio = tfio.audio.decode_wav(r"./audio/UGK (Underground Kingz) - Int'l Players 
 # %%
 print(audio)
 # %%
-import librosa, librosa.display
-import matplotlib.pyplot as plt
+import os
 import numpy as np
+from tqdm import tqdm
 
-
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import librosa, librosa.display
+import skimage.io
 
 # %%
-# ! album_path = r"..\capstone-audio\jayz\reasonable-doubt\""
-# ! for file in osdir(album_path):
-# !     do them shits
-file = r"..\capstone-audio\jayz\JAY-Z - Girls, Girls, Girls (Audio )-h2fNacQU1jY.mp3"
+album_path = r"D:\Python_Projects\flatiron\class-materials\capstone-data\music\Jay-Z\Discography@320kbps{gotfw}\{1996~2013}\01. Studio Albums\(1996)Reasonable Doubt\\"
+files = os.listdir(album_path)
+
+artist_album = "jayz_reasonable_doubt"
+img_num = 0
+
+for file in tqdm(files[:1]):
+    img_num += 1
+    file_joined = os.path.join(album_path, file)
+    signal, sr = librosa.load(file_joined, sr = 22050)
+    y, sr = librosa.load(file_joined, sr=32000, mono=True)
+    melspec = librosa.feature.melspectrogram(y, sr=sr, n_mels = 128)
+    melspec = librosa.power_to_db(melspec).astype(np.float32)
+
+    fig = plt.Figure()
+    # canvas = FigureCanvas(fig)
+    ax = fig.add_subplot(111)
+    img = librosa.display.specshow(melspec, ax=ax, x_axis='time', y_axis='mel',sr=sr, fmax=16000)
+    fig.savefig(fr'D:\Python_Projects\flatiron\class-materials\capstone_data\mel-specs\{artist_album}\{file.replace(".mp3","")}.png')
+    # skimage.io.imsave("melspec.png",img)
+# file = r"D:\Python_Projects\flatiron\class-materials\capstone-data\music\Jay-Z\Discography@320kbps{gotfw}\{1996~2013}\01. Studio Albums\(1996)Reasonable Doubt\01 Can't Knock The Hustle.mp3"
 # file = r"..\capstone-audio\jayz\reasonable-doubt\Cashmere Thoughts-Vf2LNPFLPAE.m4a"
 
-signal, sr = librosa.load(file, sr = 22050)
 # %%
 # short way - idk if the other way is better or not
-y, sr = librosa.load(file, sr=32000, mono=True)
-melspec = librosa.feature.melspectrogram(y, sr=sr, n_mels = 128)
-melspec = librosa.power_to_db(melspec).astype(np.float32)
-librosa.display.specshow(melspec, x_axis='time', y_axis='mel',sr=sr, fmax=16000)
 #%%
 # visualizing waveform to see time vs amplitude - don't need for CNN
 librosa.display.waveplot(signal, sr=sr)
