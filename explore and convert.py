@@ -43,4 +43,4 @@ print(artist_folders)
 for folder in artist_folders:
     print(os.listdir(folder))
 
-# ! Reorganize folder structure in regions > artists > albums > songs
+# ! Reorganize folder structure in regions > artists > albums > song files
