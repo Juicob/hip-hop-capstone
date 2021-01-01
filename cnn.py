@@ -62,8 +62,8 @@ def plot_results(results):
 
 def plotImages(images_arr, labels_arr):
     # labels_arr = ['Normal: 0' if label == 0 else 'Pneumonia: 1' for label in labels_arr]
-    fig, axes = plt.subplots(1, 10, figsize=(30,30))
-    axes = axes.flatten()
+    fig, axes = plt.subplots(1, 10, figsize=(20,20))
+    # axes = axes.flatten()
     for img, label, ax in zip(images_arr, 
                               labels_arr, 
                               axes):
@@ -153,39 +153,62 @@ train_south = os.path.join('../capstone-data/music/TRAIN/South')
 ## Normalize image size and load into generator
 # %%
 # All images will be rescaled by 1./255
-img_datagen = ImageDataGenerator(rescale=1./255)
- 
+train_datagen = ImageDataGenerator(rescale=1./255)
+
+test_val_datagen = ImageDataGenerator(rescale=1./255,
+                                      validation_split=0.2)
+
 # Flow training images in batches of 128 using train_datagen generator
-train_generator = img_datagen.flow_from_directory('../capstone-data/music/TRAIN/',  # Source dir for training images
+train_generator = train_datagen.flow_from_directory('../capstone-data/music/TRAIN/',  # Source dir for training images
                                                   target_size=(64, 64),  # All images will be resized to 150x150
-                                                  batch_size=2606, #128
+                                                  batch_size=2086, #128
                                                   color_mode='grayscale',
                                                   # Since we use binary_crossentropy loss, we need binary labels
                                                   class_mode='categorical',
                                                   shuffle=True)
 
-# val_generator = img_datagen.flow_from_directory('../project_image_data/val/', # This is th source dir for validation images
-#                                                  target_size=(64, 64),  # All images will be resized to 150x150
-#                                                  batch_size=92, #128
-#                                                  color_mode='grayscale',
-#                                                  # Since we use binary_crossentropy loss, we need binary labels
-#                                                  class_mode='categorical')
+val_generator = test_val_datagen.flow_from_directory('../capstone-data/music/TEST/', # This is th source dir for validation images
+                                                 target_size=(64, 64),  # All images will be resized to 150x150
+                                                 batch_size=346, #128
+                                                 color_mode='grayscale',
+                                                 # Since we use binary_crossentropy loss, we need binary labels
+                                                 class_mode='categorical',
+                                                 subset='training',
+                                                 shuffle=False)
 
-# test_generator = img_datagen.flow_from_directory('../project_image_data/test/', # This is th source dir for validation images
-#                                                  target_size=(64, 64),  # All images will be resized to 150x150
-#                                                  batch_size=624, #128
-#                                                  color_mode='grayscale',
-#                                                  # Since we use binary_crossentropy loss, we need binary labels
-#                                                  class_mode='categorical',
-#                                                  shuffle=False)       
+test_generator = test_val_datagen.flow_from_directory('../capstone-data/music/TEST/', # This is th source dir for validation images
+                                                 target_size=(64, 64),  # All images will be resized to 150x150
+                                                 batch_size=1384, #128
+
+                                                 color_mode='grayscale',
+                                                 # Since we use binary_crossentropy loss, we need binary labels
+                                                 class_mode='categorical',
+                                                 subset='validation',
+                                                 shuffle=False)       
 
 X_train,y_train = next(train_generator)
+X_test,y_test = next(test_generator)
+X_val,y_val = next(val_generator)
 # %%
-# X_test,y_test = next(test_generator)
-# X_val,y_val = next(val_generator)
 
 # %% [markdown]
 ## Show pictures
+
+# %% [markdown]
+# Check it - 
+
+# Capstone Project Update - 
+
+# For those that don't know, what I plan to do for my capstone project is use audio files and lyrics to classify hip hop artists by region based on how much their songs align stylistically with that of the artists that define the style of each region. What you see here is just a small subset of songs that I converted to mel-spectograms from various artists labeled by region. I just finished converting thousands of mp3s into images and the first thing I see before I start building out a CNN is the young Streets Disciple himself mean mugging and reminding me from the dungeons of rap, that I forgot to remove the album covers. I appreciate that Nas, much love. This isn't my first oversight and it definitely won't be my last! I have way too many ideas for the time I have to complete this so I'll to take a "done is better than perfect" approach and save the rest to hone my craft while looking for a job. 
+
+
+# For any hip hop heads, I'd love to hear y'alls opinions on how you would define the different regions of hip hop, and the quintessential artists of each.
+
+# I've already decided on mine based on certain criteria I've defined, but I'd like to hear how different or similar my picks are to everyone else's. It doesn't have to be exhaustive either. One or two with matching regions is fine too. There are no wrong answers! I know this can be a heavily debated subject.
+
+# For my data science homies out there, are there any concerns that immediately come to mind for a project like this? I haven't even started the NLP portion yet (just gathered lots of data thanks #genius.com) so I'm not even sure how I'll combine the results of both models for the final classifier. Also, I have no idea why I have a yellow border around my spectograms. I don't think it'll affect my model but man is it annoying to look at. 
+
+# Not everyone's into hip hop, and that's cool. I'm into computer vision, nlp and music, and I think this project is dope. So this is my learning experience.
 # %%
 plotImages(X_train, y_train)
 # print(y_train[:10])

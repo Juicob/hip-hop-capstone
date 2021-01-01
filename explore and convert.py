@@ -45,43 +45,43 @@ for folder in artist_folders:
 # ! Reorganize folder structure in regions > artists > albums > track files
 # %%
 top_dir_path = "D:/Python_Projects/flatiron/class-materials/capstone-data/music"
-train_path = os.path.join(top_dir_path, 'TRAIN')
+train_path = os.path.join(top_dir_path, 'TEST')
 # !                                                                                 ============== Gate
-while False:
-    for region in os.listdir(train_path)[3:]:
-        print(region)
-        region_path = os.path.join(train_path, region)
-        # print(region_path)
-        for artist in tqdm(os.listdir(region_path)[:]):
-            print(artist)
-            artist_path = os.path.join(region_path, artist)
-            print('\n',artist_path)
-            if os.path.isdir(artist_path):
-                for album in tqdm(os.listdir(artist_path)[:]):
-                    album_path = os.path.join(artist_path, album)
-                    print(region, artist, album)
-                    if os.path.isdir(album_path):
-                        for track in tqdm(os.listdir(album_path)[:]):
-                            track_path = os.path.join(album_path, track)
-                            if track.endswith('.jpg'):
-                                os.remove(track_path)
-                                print(f'REMOVED {track}')
-                            if track.endswith('.mp3'):
-                                # print(track)
-                                try:
-                                    print(track_path)
-                                    signal, sr = librosa.load(track_path, sr = 22050)
-                                    y, sr = librosa.load(track_path, sr=32000, mono=True)
-                                    melspec = librosa.feature.melspectrogram(y, sr=sr, n_mels = 128)
-                                    melspec = librosa.power_to_db(melspec).astype(np.float32)
+while True:
+    # for region in os.listdir(train_path)[:]:
+    #     print(region)
+    #     region_path = os.path.join(train_path, region)
+    #     # print(region_path)
+    for artist in tqdm(os.listdir(train_path)[:]): #sub region path for train path
+        print(artist)
+        artist_path = os.path.join(train_path, artist) #sub region path for train path
+        print('\n',artist_path)
+        if os.path.isdir(artist_path):
+            for album in tqdm(os.listdir(artist_path)[:]):
+                album_path = os.path.join(artist_path, album)
+                print(region, artist, album)
+                if os.path.isdir(album_path):
+                    for track in tqdm(os.listdir(album_path)[:]):
+                        track_path = os.path.join(album_path, track)
+                        if track.endswith('.jpg'):
+                            os.remove(track_path)
+                            print(f'REMOVED {track}')
+                        if track.endswith('.mp3'):
+                            # print(track)
+                            try:
+                                print(track_path)
+                                signal, sr = librosa.load(track_path, sr = 22050)
+                                y, sr = librosa.load(track_path, sr=32000, mono=True)
+                                melspec = librosa.feature.melspectrogram(y, sr=sr, n_mels = 128)
+                                melspec = librosa.power_to_db(melspec).astype(np.float32)
 
-                                    fig = plt.Figure()
-                                    # canvas = FigureCanvas(fig)
-                                    ax = fig.add_subplot(111)
-                                    img = librosa.display.specshow(melspec, ax=ax, sr=sr, fmax=16000, cmap='bone') # x_axis='time', y_axis='mel'
-                                    fig.savefig(track_path.replace(".mp3",".png"))
-                                except:
-                                    print('CORRUPTED FILE')
+                                fig = plt.Figure()
+                                # canvas = FigureCanvas(fig)
+                                ax = fig.add_subplot(111)
+                                img = librosa.display.specshow(melspec, ax=ax, sr=sr, fmax=16000, cmap='bone') # x_axis='time', y_axis='mel'
+                                fig.savefig(track_path.replace(".mp3",".png"))
+                            except:
+                                print('CORRUPTED FILE')
                 # ! remove file if .jpg
 
 
