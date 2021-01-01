@@ -7,6 +7,7 @@ from tqdm import tqdm
 import numpy as np
 import pandas as pd
 import random
+import glob
 
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -19,9 +20,11 @@ from tensorflow import keras
 from tensorflow.random import set_seed
 from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
+from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img, array_to_img
 from tensorflow.python.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D, ZeroPadding2D
-from sklearn.metrics import confusion_matrix, roc_curve, auc
+from sklearn.metrics import confusion_matrix, plot_confusion_matrix, roc_curve, auc
+from sklearn.model_selection import train_test_split
 from sklearn import metrics
 
 import visualkeras
@@ -55,7 +58,7 @@ def plot_results(results):
   fig = px.line(results_dataframe, x=results_dataframe.index, y=['loss','val_loss'])
   fig.update_layout(title='Loss and Validation Loss over Epochs',
                     xaxis_title='Epoch',
-                    yaxis_title='idek what this unit is - change me'
+                    yaxis_title='Loss'
                 )
   fig.update_traces(mode='lines+markers')
   fig.show()
@@ -74,13 +77,16 @@ def plotImages(images_arr, labels_arr):
     plt.show()
 
 def evaluate_results(model): 
+    labels = ['East', 'Mid-West', 'South', 'West']
     predictions = model.predict(X_test).round()
-    cm = metrics.confusion_matrix(y_test, 
-                                  predictions,
-                                  normalize='true')
+    cm = metrics.confusion_matrix(y_test.argmax(axis=1), 
+                                    predictions.argmax(axis=1),
+                                    normalize='true')
 
     ax = sns.heatmap(cm, cmap='Blues',annot=True,square=True)
     ax.set(xlabel='Predicted Class',ylabel='True Class')
+    ax.set_xticklabels(labels)
+    ax.set_yticklabels(labels)
     print(metrics.classification_report(y_test, predictions))
 
 # def prepare_confusion_matrix(model):
@@ -90,38 +96,13 @@ def evaluate_results(model):
 #     return cm, predictions
     # test_generator.class_indices
   
+# %%
+# labels = {'East': 0, 'Mid-West': 1, 'South': 2, 'West': 3}
+# for value in list(labels.values()):
+#     print(list(labels.keys())[value])
 # %% [markdown]
 ## Setting up paths
-# %%
-top_dir_path = "D:/Python_Projects/flatiron/class-materials/capstone-data/music"
-train_path = os.path.join(top_dir_path, 'TRAIN')
-for region in os.listdir(train_path)[:1]:
-    print(region)
-    region_path = os.path.join(train_path, region)
-    # print(region_path)
-    for artist in tqdm(os.listdir(region_path)[:]):
-        print(artist)
-        artist_path = os.path.join(region_path, artist)
-        print('\n',artist_path)
-        if os.path.isdir(artist_path):
-            for album in tqdm(os.listdir(artist_path)[:]):
-                album_path = os.path.join(artist_path, album)
-                print(region, artist, album)
-                if os.path.isdir(album_path):
-                    for track in tqdm(os.listdir(album_path)[:]):
-                        track_path = os.path.join(album_path, track)
-                        # if track.endswith('.jpg'):
-                        #     os.remove(track_path)
-                        #     print(f'REMOVED {track}')
-                        # if track.endswith('.png'):
-                        #     os.remove(track_path)
-                        #     print(f'REMOVED {track}')
-                        if track.endswith('.mp3'):
-                            # print(track)
-                            try:
-                                print(track_path)
-                            except:
-                                pass
+
 # %%
 
 train_east = os.path.join('../capstone-data/music/TRAIN/East')
@@ -138,7 +119,7 @@ train_south = os.path.join('../capstone-data/music/TRAIN/South')
 # val_normal = os.path.join('../project_image_data/val/NORMAL')
 # val_pneumonia = os.path.join('../project_image_data/val/PNEUMONIA')
 
-# all_paths = [train_normal, train_pneumonia, test_normal, test_pneumonia, val_normal, val_pneumonia]
+all_paths = [train_east, train_west, train_mid_west, train_south]
 
 # %% [markdown]
 ## Show number of files for each class in each folder
@@ -146,7 +127,9 @@ train_south = os.path.join('../capstone-data/music/TRAIN/South')
 
 # for path in all_paths:
 #     print(f'{path} has  {len(os.listdir(path))}  files')
-
+for path in all_paths:
+    png_count = len(glob.glob(os.path.join(path, '**/*.png'), recursive=True))
+    print(path,':', png_count)    
 # %%
 
 # %% [markdown]
@@ -155,60 +138,61 @@ train_south = os.path.join('../capstone-data/music/TRAIN/South')
 # All images will be rescaled by 1./255
 train_datagen = ImageDataGenerator(rescale=1./255)
 
-test_val_datagen = ImageDataGenerator(rescale=1./255,
-                                      validation_split=0.2)
+# test_val_datagen = ImageDataGenerator(rescale=1./255,
+#                                       validation_split=0.2)
 
 # Flow training images in batches of 128 using train_datagen generator
 train_generator = train_datagen.flow_from_directory('../capstone-data/music/TRAIN/',  # Source dir for training images
-                                                  target_size=(64, 64),  # All images will be resized to 150x150
-                                                  batch_size=2086, #128
+                                                  target_size=(256, 256),  # All images will be resized to 150x150
+                                                  batch_size=4273, #2086
                                                   color_mode='grayscale',
-                                                  # Since we use binary_crossentropy loss, we need binary labels
+                                                  # Since we use categorical_crossentropy loss, we need binary labels
                                                   class_mode='categorical',
+                                                  subset='training',
                                                   shuffle=True)
 
-val_generator = test_val_datagen.flow_from_directory('../capstone-data/music/TEST/', # This is th source dir for validation images
-                                                 target_size=(64, 64),  # All images will be resized to 150x150
-                                                 batch_size=346, #128
-                                                 color_mode='grayscale',
-                                                 # Since we use binary_crossentropy loss, we need binary labels
-                                                 class_mode='categorical',
-                                                 subset='training',
-                                                 shuffle=False)
+# val_generator = test_val_datagen.flow_from_directory('../capstone-data/music/TRAIN/', # This is th source dir for validation images
+#                                                  target_size=(64, 64),  # All images will be resized to 150x150
+#                                                  batch_size=852, #435
+#                                                  color_mode='grayscale',
+#                                                  # Since we use categorical_crossentropy loss, we need binary labels
+#                                                  class_mode='categorical',
+#                                                  subset='validation',
+#                                                  shuffle=True)
 
-test_generator = test_val_datagen.flow_from_directory('../capstone-data/music/TEST/', # This is th source dir for validation images
-                                                 target_size=(64, 64),  # All images will be resized to 150x150
-                                                 batch_size=1384, #128
+# test_generator = test_val_datagen.flow_from_directory('../capstone-data/music/TRAIN/', # This is th source dir for validation images
+#                                                  target_size=(64, 64),  # All images will be resized to 150x150
+#                                                  batch_size=4273, #1752
+#                                                  color_mode='grayscale',
+#                                                  # Since we use categorical_crossentropy loss, we need binary labels
+#                                                  class_mode='categorical',
+#                                                 #  subset='training',
+#                                                  shuffle=False)       
 
-                                                 color_mode='grayscale',
-                                                 # Since we use binary_crossentropy loss, we need binary labels
-                                                 class_mode='categorical',
-                                                 subset='validation',
-                                                 shuffle=False)       
+X_all,y_all = next(train_generator)
+# X_test,y_test = next(test_generator)
+# X_val,y_val = next(val_generator)
 
-X_train,y_train = next(train_generator)
-X_test,y_test = next(test_generator)
-X_val,y_val = next(val_generator)
+
+# %%
+X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=0.2, random_state=42, shuffle=True)
+# %%
+print(X_train.shape)
+print(y_train.shape)
+print(X_test.shape)
+print(y_test.shape)
+# %%
+X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.2, random_state=42, shuffle=True) 
 # %%
 
+print(X_test.shape)
+print(y_test.shape)
+print(X_val.shape)
+print(y_val.shape)
 # %% [markdown]
 ## Show pictures
 
-# %% [markdown]
-# Check it - 
 
-# Capstone Project Update - 
-
-# For those that don't know, what I plan to do for my capstone project is use audio files and lyrics to classify hip hop artists by region based on how much their songs align stylistically with that of the artists that define the style of each region. What you see here is just a small subset of songs that I converted to mel-spectograms from various artists labeled by region. I just finished converting thousands of mp3s into images and the first thing I see before I start building out a CNN is the young Streets Disciple himself mean mugging and reminding me from the dungeons of rap, that I forgot to remove the album covers. I appreciate that Nas, much love. This isn't my first oversight and it definitely won't be my last! I have way too many ideas for the time I have to complete this so I'll to take a "done is better than perfect" approach and save the rest to hone my craft while looking for a job. 
-
-
-# For any hip hop heads, I'd love to hear y'alls opinions on how you would define the different regions of hip hop, and the quintessential artists of each.
-
-# I've already decided on mine based on certain criteria I've defined, but I'd like to hear how different or similar my picks are to everyone else's. It doesn't have to be exhaustive either. One or two with matching regions is fine too. There are no wrong answers! I know this can be a heavily debated subject.
-
-# For my data science homies out there, are there any concerns that immediately come to mind for a project like this? I haven't even started the NLP portion yet (just gathered lots of data thanks #genius.com) so I'm not even sure how I'll combine the results of both models for the final classifier. Also, I have no idea why I have a yellow border around my spectograms. I don't think it'll affect my model but man is it annoying to look at. 
-
-# Not everyone's into hip hop, and that's cool. I'm into computer vision, nlp and music, and I think this project is dope. So this is my learning experience.
 # %%
 plotImages(X_train, y_train)
 # print(y_train[:10])
@@ -219,50 +203,45 @@ print(train_generator.class_indices)
 # %%
 test_generator.class_indices
 # %% [markdown]
-## Begin modelling
+## Begin modeling
 # %%
-
+%%time
 RMSprop_32_64 = tf.keras.models.Sequential([
     # Note the input shape is the desired size of the image 300x300 with 3 bytes color
     # This is the first convolution
-    tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(64, 64, 1)),
+    tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(256, 256, 1)),
     tf.keras.layers.MaxPooling2D(2, 2),
-    # The second convolution
     tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+    # The second convolution
     tf.keras.layers.MaxPooling2D(2,2),
 
     tf.keras.layers.Flatten(),
     # 512 neuron hidden layer
     # tf.keras.layers.Dense(512, activation='relu'),
     # Only 1 output neuron. It will contain a value from 0-1
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(128, activation='softmax'),
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 RMSprop_32_64.summary()
-# %%
-# %%
-%%time
-RMSprop_32_64.compile(loss='binary_crossentropy',
+
+RMSprop_32_64.compile(loss='categorical_crossentropy',
               optimizer=RMSprop(lr=0.0001),
               metrics=['accuracy',tf.keras.metrics.Recall()])
-# %%
 
-# os.makedirs(filepath,exist_ok=True)
-tensorboard = TensorBoard(log_dir=f'./logs/RMSprop_32_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
-earlystop = tf.keras.callbacks.EarlyStopping(patience=3, verbose=True)
-# %%
-%%time
-checkpoint = ModelCheckpoint(filepath=r'./checkpoints/RMSprop_32_64', verbose=1, save_best_only=True, mode='auto')
+tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/RMSprop_32_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+earlystop = tf.keras.callbacks.EarlyStopping(patience=10, verbose=False)
+
+checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/RMSprop_32_64', verbose=0, save_best_only=True, mode='auto')
 history1 = RMSprop_32_64.fit(
       X_train, 
       y_train,
     #   steps_per_epoch=8,  
       batch_size=128,
       epochs=100, #epochs=15
-      verbose=1,
+      verbose=0,
       callbacks=[earlystop, tensorboard, checkpoint],
       validation_data=(X_val, y_val))
 
-# %%
 plot_results(history1.history)
 evaluate_results(RMSprop_32_64)
 
@@ -274,45 +253,57 @@ cm = confusion_matrix(y_true=test_generator.classes, y_pred=np.argmax(prediction
 '''from sklearn import metrics
 print(metrics.classification_report(y_test, predictions.round()))'''
 # %%
+%%time
 Adam_32_64 = tf.keras.models.Sequential([
     # Note the input shape is the desired size of the image 300x300 with 3 bytes color
     # This is the first convolution
-    tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(64, 64, 1)),
+    tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(256, 256, 1)),
+    tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
     tf.keras.layers.MaxPooling2D(2, 2),
     # The second convolution
     tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+    tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
     tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
+    tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+    # tf.keras.layers.Conv2D(256, (3,3), activation='relu'),
+    # tf.keras.layers.Conv2D(256, (3,3), activation='relu'),
+    # tf.keras.layers.MaxPooling2D(2,2),
 
     tf.keras.layers.Flatten(),
     # 512 neuron hidden layer
-    # tf.keras.layers.Dense(512, activation='relu'),
+    # tf.keras.layers.Dense(128, activation='relu'),
+    # tf.keras.layers.Dense(128, activation='relu'),
     # Only 1 output neuron. It will contain a value from 0-1
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
+
 Adam_32_64.summary()
-Adam_32_64.compile(loss='binary_crossentropy',
+Adam_32_64.compile(loss='categorical_crossentropy',
               optimizer="Adam",
               metrics=['accuracy',tf.keras.metrics.Recall()])
 
-# %%
-%%time
-checkpoint = ModelCheckpoint(filepath=r'./checkpoints/Adam_32_64_', verbose=1, save_best_only=True, mode='auto')
-tensorboard = TensorBoard(log_dir=f'./logs/Adam_32_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/Adam_32_64_', verbose=0, save_best_only=True, mode='auto')
+tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
 history2 = Adam_32_64.fit(
       X_train, 
       y_train,
     #   steps_per_epoch=8,  
       batch_size=128,
-      epochs=100, #epochs=15
-      verbose=1,
+      epochs=60, #epochs=15
+      verbose=0,
       callbacks=[earlystop, tensorboard, checkpoint],
       validation_data=(X_val, y_val))
 
-# %%
 plot_results(history2.history)
 evaluate_results(Adam_32_64)
+# %%
 
 # %%
+
+# %%
+%%time
 Adam_32_64_64 = tf.keras.models.Sequential([
     # Note the input shape is the desired size of the image 300x300 with 3 bytes color
     # This is the first convolution
@@ -328,30 +319,33 @@ Adam_32_64_64 = tf.keras.models.Sequential([
     # 512 neuron hidden layer
     # tf.keras.layers.Dense(512, activation='relu'),
     # Only 1 output neuron. It will contain a value from 0-1
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
+
 Adam_32_64_64.summary()
-Adam_32_64_64.compile(loss='binary_crossentropy',
+Adam_32_64_64.compile(loss='categorical_crossentropy',
               optimizer="Adam",
               metrics=['accuracy',tf.keras.metrics.Recall()])
-# %%
-%%time
-checkpoint = ModelCheckpoint(filepath=r'./checkpoints/Adam_32_64_64_', verbose=1, save_best_only=True, mode='auto')
-tensorboard = TensorBoard(log_dir=f'./logs/Adam_32_64_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/Adam_32_64_64_', verbose=1, save_best_only=True, mode='auto')
+tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_64_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+
 history3 = Adam_32_64_64.fit(
       X_train, 
       y_train,
     #   steps_per_epoch=8,  
       batch_size=128,
-      epochs=100, #epochs=15
+      epochs=60, #epochs=15
       verbose=1,
       callbacks=[tensorboard, earlystop, checkpoint],
       validation_data=(X_val, y_val))
 
-# %%
 plot_results(history3.history)
 evaluate_results(Adam_32_64_64)
 # %%
+
+# %%
+# %%
+%%time
 Adam_32_64_128 = tf.keras.models.Sequential([
     # Note the input shape is the desired size of the image 300x300 with 3 bytes color
     # This is the first convolution
@@ -367,29 +361,30 @@ Adam_32_64_128 = tf.keras.models.Sequential([
     # 512 neuron hidden layer
     # tf.keras.layers.Dense(512, activation='relu'),
     # Only 1 output neuron. It will contain a value from 0-1
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 Adam_32_64_128.summary()
-Adam_32_64_128.compile(loss='binary_crossentropy',
+Adam_32_64_128.compile(loss='categorical_crossentropy',
               optimizer="Adam",
               metrics=['accuracy',tf.keras.metrics.Recall()])
-# %%
-%%time
-checkpoint = ModelCheckpoint(filepath=r'./checkpoints/Adam_32_64_128_', verbose=1, save_best_only=True, mode='auto')
-tensorboard = TensorBoard(log_dir=f'./logs/Adam_32_64_128_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+
+checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/Adam_32_64_128_', verbose=1, save_best_only=True, mode='auto')
+tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_64_128_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+
 history4 = Adam_32_64_128.fit(
       X_train, 
       y_train,
     #   steps_per_epoch=8,  
       batch_size=128,
-      epochs=100, #epochs=15
+      epochs=50, #epochs=15
       verbose=1,
       callbacks=[earlystop, tensorboard, checkpoint],
       validation_data=(X_val, y_val))
 
-# %%
 plot_results(history4.history)
 evaluate_results(Adam_32_64_128)
+# %%
+# %%
 # %%
 Adam_32_64_128_256 = tf.keras.models.Sequential([
     # Note the input shape is the desired size of the image 300x300 with 3 bytes color
@@ -408,23 +403,23 @@ Adam_32_64_128_256 = tf.keras.models.Sequential([
     # 512 neuron hidden layer
     # tf.keras.layers.Dense(512, activation='relu'),
     # Only 1 output neuron. It will contain a value from 0-1
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 Adam_32_64_128_256.summary()
-Adam_32_64_128_256.compile(loss='binary_crossentropy',
+Adam_32_64_128_256.compile(loss='categorical_crossentropy',
               optimizer="Adam",
               metrics=['accuracy',tf.keras.metrics.Recall()])
 
 # %%
 %%time
-checkpoint = ModelCheckpoint(filepath=r'./checkpoints/Adam_32_64_128_256', verbose=1, save_best_only=True, mode='auto')
-tensorboard = TensorBoard(log_dir=f'./logs/Adam_32_64_128_256{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/Adam_32_64_128_256', verbose=1, save_best_only=True, mode='auto')
+tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_64_128_256{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
 history5 = Adam_32_64_128_256.fit(
       X_train, 
       y_train,
     #   steps_per_epoch=8,  
       batch_size=128,
-      epochs=100, #epochs=15
+      epochs=60, #epochs=15
       verbose=1,
       callbacks=[earlystop, tensorboard, checkpoint],
       validation_data=(X_val, y_val))
@@ -452,23 +447,23 @@ Adam_32_64_64_64 = tf.keras.models.Sequential([
   
     # tf.keras.layers.Dense(32, activation='relu'),
     # Only 1 output neuron. It will contain a value from 0-1
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 Adam_32_64_64_64.summary()
-Adam_32_64_64_64.compile(loss='binary_crossentropy',
+Adam_32_64_64_64.compile(loss='categorical_crossentropy',
               optimizer="Adam",
               metrics=['accuracy',tf.keras.metrics.Recall()])
 
 # %%
 %%time
-checkpoint = ModelCheckpoint(filepath=r'./checkpoints/Adam_32_64_64_64_', verbose=1, save_best_only=True, save_weights_only=True, mode='auto')
-tensorboard = TensorBoard(log_dir=f'./logs/Adam_32_64_64_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/Adam_32_64_64_64_', verbose=1, save_best_only=True, save_weights_only=True, mode='auto')
+tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_64_64_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
 history6 = Adam_32_64_64_64.fit(
       X_train, 
       y_train,
     #   steps_per_epoch=8,  
       batch_size=128,
-      epochs=100, #epochs=15
+      epochs=60, #epochs=15
       verbose=1,
       callbacks=[earlystop, tensorboard, checkpoint], 
       validation_data=(X_val, y_val))
@@ -496,23 +491,23 @@ Adam_32_64_64_64_P5 = tf.keras.models.Sequential([
     # 512 neuron hidden layer
     # tf.keras.layers.Dense(512, activation='relu'),
     # Only 1 output neuron. It will contain a value from 0-1
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 Adam_32_64_64_64_P5.summary()
-Adam_32_64_64_64_P5.compile(loss='binary_crossentropy',
+Adam_32_64_64_64_P5.compile(loss='categorical_crossentropy',
               optimizer="Adam",
               metrics=['accuracy',tf.keras.metrics.Recall()])
 
 # %%
 %%time
-checkpoint = ModelCheckpoint(filepath=r'./checkpoints/Adam_32_64_64_64_P5_', verbose=1, save_best_only=True, mode='auto')
-tensorboard = TensorBoard(log_dir=f'./logs/Adam_32_64_64_64_P5_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/Adam_32_64_64_64_P5_', verbose=1, save_best_only=True, mode='auto')
+tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_64_64_64_P5_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
 history7 = Adam_32_64_64_64_P5.fit(
       X_train, 
       y_train,
     #   steps_per_epoch=8,  
       batch_size=128,
-      epochs=100, #epochs=15
+      epochs=60, #epochs=15
       verbose=1,
       callbacks=[tensorboard, earlystop, checkpoint],
       validation_data=(X_val, y_val))
@@ -540,23 +535,23 @@ Adam_32_32_32_32 = tf.keras.models.Sequential([
     # 512 neuron hidden layer
     # tf.keras.layers.Dense(512, activation='relu'),
     # Only 1 output neuron. It will contain a value from 0-1
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 Adam_32_32_32_32.summary()
-Adam_32_32_32_32.compile(loss='binary_crossentropy',
+Adam_32_32_32_32.compile(loss='categorical_crossentropy',
               optimizer="Adam",
               metrics=['accuracy',tf.keras.metrics.Recall()])
 
 # %%
 %%time
-checkpoint = ModelCheckpoint(filepath=r'./checkpoints/Adam_32_32_32_32_', verbose=1, save_best_only=True, mode='auto')
-tensorboard = TensorBoard(log_dir=f'./logs/Adam_32_32_32_32_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/Adam_32_32_32_32_', verbose=1, save_best_only=True, mode='auto')
+tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_32_32_32_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
 history8 = Adam_32_32_32_32.fit(
       X_train, 
       y_train,
     #   steps_per_epoch=8,  
       batch_size=128,
-      epochs=100, #epochs=15
+      epochs=60, #epochs=15
       verbose=1,
       callbacks=[tensorboard, earlystop, checkpoint],
       validation_data=(X_val, y_val))
@@ -585,25 +580,25 @@ Adam_32_32_32_32_2D = tf.keras.models.Sequential([
     # 512 neuron hidden layer
     tf.keras.layers.Dense(64, activation='relu'),
     # Only 1 output neuron. It will contain a value from 0-1
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 # %%
 Adam_32_32_32_32_2D.summary()
 # %%
-Adam_32_32_32_32_2D.compile(loss='binary_crossentropy',
+Adam_32_32_32_32_2D.compile(loss='categorical_crossentropy',
               optimizer="Adam",
               metrics=['accuracy',tf.keras.metrics.Recall()])
 
 # %%
 %%time
-checkpoint = ModelCheckpoint(filepath=r'./checkpoints/Adam_32_32_32_32_2D_', verbose=1, save_best_only=True, mode='auto')
-tensorboard = TensorBoard(log_dir=f'./logs/Adam_32_32_32_32_2D_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/Adam_32_32_32_32_2D_', verbose=1, save_best_only=True, mode='auto')
+tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_32_32_32_2D_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
 history9 = Adam_32_32_32_32_2D.fit(
       X_train, 
       y_train,
       batch_size=128,
     #   steps_per_epoch=8,  
-      epochs=100, #epochs=15
+      epochs=60, #epochs=15
       verbose=1,
       callbacks=[earlystop, tensorboard, checkpoint],
       validation_data=(X_val, y_val))
@@ -620,8 +615,8 @@ best_model = tf.keras.models.load_model('Adam_32_32_32_32__best')
 
 # %%
 # earlystop = tf.keras.callbacks.EarlyStopping(patience=3, verbose=True)
-# checkpoint = ModelCheckpoint(filepath=r'./checkpoints/testloadd.hdf5', verbose=1, save_best_only=True, save_weights_only=True, mode='auto')
-# tensorboard = TensorBoard(log_dir=f'./logs/Adam_32_64_64_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
+# checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/testloadd.hdf5', verbose=1, save_best_only=True, save_weights_only=True, mode='auto')
+# tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_64_64_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
 # test_HISTORY = best_model.fit(
 #       X_train, 
 #       y_train,
