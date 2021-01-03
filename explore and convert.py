@@ -45,7 +45,7 @@ for folder in artist_folders:
 # ! Reorganize folder structure in regions > artists > albums > track files
 # %%
 top_dir_path = "D:/Python_Projects/flatiron/class-materials/capstone-data/music"
-train_path = os.path.join(top_dir_path, 'TEST')
+train_path = os.path.join(top_dir_path, 'TEST', 'East')
 # !                                                                                 ============== Gate
 while True:
     # for region in os.listdir(train_path)[:]:
@@ -63,9 +63,6 @@ while True:
                 if os.path.isdir(album_path):
                     for track in tqdm(os.listdir(album_path)[:]):
                         track_path = os.path.join(album_path, track)
-                        if track.endswith('.jpg'):
-                            os.remove(track_path)
-                            print(f'REMOVED {track}')
                         if track.endswith('.mp3'):
                             # print(track)
                             try:
