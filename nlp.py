@@ -42,21 +42,71 @@ df.head()
 reg_brackets = '\[[^\]]*\]'
 reg_newline = '\n'
 df.lyrics[1][400:500]
-# %%
-bracket_text_to_remove = re.findall(reg_brackets, ','.join(corpus))
-# %%
 corpus = df.lyrics.to_list()
+corpus = re.sub(reg_brackets, ' ', ','.join(corpus))
+corpus = re.sub(reg_newline, ' ', corpus)
+
+# %%
+corpus[:3000]
+
+# %%
+# %%
 stopword_list = stopwords.words('english')
-stopword_list.extend(string.punctuation)
-stopword_list
+stopword_list += string.punctuation
+stopword_list[-20:]
 # %%
-tokens = word_tokenize(','.join(corpus))
-freq = FreqDist(tokens)
+tokens = word_tokenize(corpus)
+# %%
+len(tokens)
+# %%
+cleaned_tokens = [w.lower() for w in tokens[:] if w.lower() not in stopword_list]
+# %%
+freq = FreqDist(cleaned_tokens)
 freq.most_common(100)
-# %%
 
 # %%
 
 # %%
+df = pd.read_csv('../capstone-data/lyrics/lyrics_main.csv',encoding='unicode_escape')
 
+# %%
+df['cleaned_lyrics'] = df.lyrics.copy(deep=True)
+# %%
+df.cleaned_lyrics = df.cleaned_lyrics.apply(lambda x: re.sub(reg_brackets, '', x))
+df.cleaned_lyrics = df.cleaned_lyrics.apply(lambda x: re.sub(reg_newline, ' ', x))
+# %%
+df.cleaned_lyrics.head()
+# %%
+artists_to_clean = [
+'2 Chainz 8,145',
+'Chance the Rapper 47,380',
+'Childish Gambino 4,621',
+'Common 10,680',
+'E-40 2,486',
+'Future 4,246',
+'Ice Cube 2,636',
+'J. Cole 505',
+'JAY-Z 175',
+'Jeezy 4,855',
+'Lil Wayne 4,188',
+'Lupe Fiasco 1,619',
+'Mac Miller 37,632',
+'Nas 37,937',
+'Nipsey Hussle 3,475',
+'Rick Ross 4,992',
+'Royce da 5\'9\" 15,776',
+'Snoop Dogg 4,935',
+'T.I. 7,556',
+'The Game 1,170',
+'Too $hort 3,022',
+'Travis Scott 3,948'
+]
+
+
+# %%
+df = pd.read_csv('../capstone-data/lyrics/lyrics_main.csv',encoding='unicode_escape')
+
+df.artist = df.artist.apply(lambda x: x.replace(x, str(x.split(' ')[:-1])).replace("['",'').replace("']",'').replace("', '", " ").replace('\\','') if x in artists_to_clean else x)
+# %%
+df.artist.value_counts()
 # %%
