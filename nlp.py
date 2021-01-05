@@ -110,3 +110,34 @@ df.artist = df.artist.apply(lambda x: x.replace(x, str(x.split(' ')[:-1])).repla
 # %%
 df.artist.value_counts()
 # %%
+df.release_date.value_counts()
+
+# ? check complaints csv and article
+#%%
+data = pd.read_csv('D:/Downloads2/complaints.csv')
+
+#%%
+data = data.dropna()
+
+# Remove rows, where the label is present only ones (can't be split)
+data = data.groupby('Issue').filter(lambda x : len(x) > 1)
+data = data.groupby('Product').filter(lambda x : len(x) > 1)
+# %%
+data.head()
+# %%
+# Set your model output as categorical and save in new label col
+data['Issue_label'] = pd.Categorical(data['Issue'])
+data['Product_label'] = pd.Categorical(data['Product'])
+# %%
+# Transform your output to numeric
+data['Issue'] = data['Issue_label'].cat.codes
+data['Product'] = data['Product_label'].cat.codes
+# %%
+data.head()
+data.shape
+# %%
+# Split into train and test - stratify over Issue
+data, data_test = train_test_split(data, test_size = 0.2, stratify = data[['Issue']])
+# %%
+
+# %%
