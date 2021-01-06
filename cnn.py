@@ -77,7 +77,7 @@ def plotImages(images_arr, labels_arr):
     plt.show()
 
 def evaluate_results(model): 
-    labels = ['East','South', 'West']
+    labels = ['East','South', 'Mid-West', 'West']
     predictions = model.predict(X_test).argmax(axis=1)
     cm = metrics.confusion_matrix(y_test.argmax(axis=1), 
                                     predictions,
@@ -224,7 +224,7 @@ Adam_32_32_32_D3_64 = tf.keras.models.Sequential([
     tf.keras.layers.Dense(64, activation='relu'),
     tf.keras.layers.Dense(64, activation='relu'),
     # Only 3 output neurond. It will contain a value from 0-2
-    tf.keras.layers.Dense(3, activation='softmax')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 
 Adam_32_32_32_D3_64.summary()
@@ -267,7 +267,7 @@ Adam_32_32_128_D32 = tf.keras.models.Sequential([
     tf.keras.layers.Flatten(),
 
     tf.keras.layers.Dense(32, activation='relu'),
-    tf.keras.layers.Dense(3, activation='softmax')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 
 Adam_32_32_128_D32.summary()
@@ -307,7 +307,7 @@ Adam_32_32_128_D16 = tf.keras.models.Sequential([
 
     tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dense(3, activation='softmax')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 
 Adam_32_32_128_D16.summary()
@@ -348,16 +348,16 @@ X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.2, r
 Adam256_32_32_32_D3_64 = tf.keras.models.Sequential([
     # Note the input shape is the desired size of the image 300x300 with 3 bytes color
     # This is the first convolution
-    tf.keras.layers.Conv2D(64, (7,7), activation='relu', input_shape=(256, 256, 3)),
-    tf.keras.layers.Conv2D(64, (7,7), activation='relu', input_shape=(256, 256, 3)),
+    # tf.keras.layers.Conv2D(32, (7,7), activation='relu', input_shape=(256, 256, 3)),
+    tf.keras.layers.Conv2D(32, (7,7), activation='relu', input_shape=(256, 256, 3)),
     tf.keras.layers.MaxPooling2D(3,3),
     # The second convolution
     tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
     # tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
     # tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
     tf.keras.layers.MaxPooling2D(3,3),
-    tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
     # tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
+    tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
     tf.keras.layers.MaxPooling2D(3,3),
 
     tf.keras.layers.Flatten(),
@@ -365,7 +365,7 @@ Adam256_32_32_32_D3_64 = tf.keras.models.Sequential([
     # tf.keras.layers.Dense(64, activation='relu'),
     # tf.keras.layers.Dense(64, activation='relu'),
     # Only 3 output neurond. It will contain a value from 0-2
-    tf.keras.layers.Dense(3, activation='softmax')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 
 Adam256_32_32_32_D3_64.summary()
