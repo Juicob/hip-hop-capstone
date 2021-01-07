@@ -44,17 +44,17 @@ for folder in artist_folders:
 
 # ! Reorganize folder structure in regions > artists > albums > track files
 # %%
-top_dir_path = "D:/Python_Projects/flatiron/class-materials/capstone-data/music"
-train_path = os.path.join(top_dir_path, 'TEST', 'East')
+top_dir_path = "D:/Python_Projects/flatiron/class-materials/capstone-data/music - Copy"
+train_path = os.path.join(top_dir_path, 'TRAIN')
 # !                                                                                 ============== Gate
-while True:
-    # for region in os.listdir(train_path)[:]:
-    #     print(region)
-    #     region_path = os.path.join(train_path, region)
-    #     # print(region_path)
-    for artist in tqdm(os.listdir(train_path)[:]): #sub region path for train path
+# while True:
+for region in os.listdir(train_path)[:]:
+    print(region)
+    region_path = os.path.join(train_path, region)
+    # print(region_path)
+    for artist in tqdm(os.listdir(region_path)[:]): #sub region path for train path
         print(artist)
-        artist_path = os.path.join(train_path, artist) #sub region path for train path
+        artist_path = os.path.join(region_path, artist) #sub region path for train path
         print('\n',artist_path)
         if os.path.isdir(artist_path):
             for album in tqdm(os.listdir(artist_path)[:]):
@@ -75,7 +75,7 @@ while True:
                                 fig = plt.Figure()
                                 # canvas = FigureCanvas(fig)
                                 ax = fig.add_subplot(111)
-                                img = librosa.display.specshow(melspec, ax=ax, sr=sr, fmax=16000, cmap='bone') # x_axis='time', y_axis='mel'
+                                img = librosa.display.specshow(melspec, ax=ax, sr=sr, fmax=16000, cmap='gist_ncar') # x_axis='time', y_axis='mel'
                                 fig.savefig(track_path.replace(".mp3",".png"))
                             except:
                                 print('CORRUPTED FILE')

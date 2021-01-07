@@ -11,18 +11,18 @@ import string
 import re
 # import glob
 
-import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg
-import plotly.graph_objs as go
-import plotly.express as px
-import seaborn as sns
+# import matplotlib.pyplot as plt
+# # import matplotlib.image as mpimg
+# import plotly.graph_objs as go
+# import plotly.express as px
+# import seaborn as sns
 
-import nltk
-from nltk.corpus import gutenberg, stopwords
-from nltk.collocations import *
-from nltk import FreqDist
-from nltk import word_tokenize
-from textblob import TextBlob
+# import nltk
+# from nltk.corpus import gutenberg, stopwords
+# from nltk.collocations import *
+# from nltk import FreqDist
+# from nltk import word_tokenize
+# from textblob import TextBlob
 
 import tensorflow as tf
 

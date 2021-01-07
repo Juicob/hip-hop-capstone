@@ -9,42 +9,94 @@ import pandas as pd
 import random
 import string
 import re
-# import glob
 
 import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg
+import matplotlib.image as mpimg
 import plotly.graph_objs as go
 import plotly.express as px
 import seaborn as sns
 
 import nltk
-from nltk.corpus import gutenberg, stopwords
-from nltk.collocations import *
-from nltk import FreqDist
 from nltk import word_tokenize
-from textblob import TextBlob
+from nltk.corpus import stopwords
+from gensim.models import word2vec
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn.utils.class_weight import compute_class_weight
+
+from sklearn import metrics
 
 import tensorflow as tf
 
-
-
-# Load Huggingface transformers
-from transformers import TFBertModel,  BertConfig, BertTokenizerFast
-from tensorflow.keras.layers import Input, Dropout, Dense
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.initializers import TruncatedNormal
-from tensorflow.keras.losses import CategoricalCrossentropy
-from tensorflow.keras.metrics import CategoricalAccuracy
 from tensorflow.keras.utils import to_categorical
-# And pandas for data import + sklearn because you allways need sklearn
-import pandas as pd
-from sklearn.model_selection import train_test_split
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.layers import Input, Dense, LSTM, Embedding
+from tensorflow.keras.layers import Dropout, Activation, Bidirectional, GlobalMaxPool1D
+from tensorflow.keras.models import Sequential
+from tensorflow.keras import initializers, regularizers, constraints, optimizers, layers
+from tensorflow.keras.preprocessing import text, sequence
 
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 print("Num GPUs Available: ", len(physical_devices))
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# %%
+def plot_results(results):
+  """Function to convert a models results into a dataframe and plot them to show the both the accuracy and validation accuracy, as well as the loss and validation loss over epochs.
+
+  Args:
+      results_dataframe (dataframe): 
+  """
+
+  results_dataframe = pd.DataFrame(results)
+
+  fig = px.line(results_dataframe, x=results_dataframe.index, y=["accuracy","val_accuracy"])
+  fig.update_layout(title='Accuracy and Validation Accuracy over Epochs',
+                    xaxis_title='Epoch',
+                    yaxis_title='Percentage',
+                )
+  fig.update_traces(mode='lines+markers')
+  fig.show()
+
+  fig = px.line(results_dataframe, x=results_dataframe.index, y=['loss','val_loss'])
+  fig.update_layout(title='Loss and Validation Loss over Epochs',
+                    xaxis_title='Epoch',
+                    yaxis_title='idek what this unit is - change me'
+                )
+  fig.update_traces(mode='lines+markers')
+  fig.show()
+
+def plotImages(images_arr, labels_arr):
+    labels_arr = ['Normal: 0' if label == 0 else 'Pneumonia: 1' for label in labels_arr]
+    fig, axes = plt.subplots(1, 10, figsize=(20,20))
+    axes = axes.flatten()
+    for img, label, ax in zip(images_arr, 
+                              labels_arr, 
+                              axes):
+        ax.imshow(img)
+        ax.set_title(label, size=18)
+        ax.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+def evaluate_results(model): 
+    labels = ['East','South', 'Mid-West', 'West']
+    predictions = model.predict(X_test).argmax(axis=1)
+    cm = metrics.confusion_matrix(y_test.argmax(axis=1), 
+                                    predictions,
+                                    normalize="pred")
+
+    ax = sns.heatmap(cm, cmap='Blues',annot=True,square=True)
+    ax.set(xlabel='Predicted Class',ylabel='True Class')
+    ax.set_xticklabels(labels)
+    ax.set_yticklabels(labels)
+    print(metrics.classification_report(y_test.argmax(axis=1), predictions))
+
 # %%
 df = pd.read_csv('../capstone-data/lyrics/lyrics_main.csv',encoding='unicode_escape')
 print('-- Dataframe shape: ',df.shape)
@@ -60,6 +112,326 @@ df.head()
 # most popular featured artists
 # most popular producers
 # most popular songs - need to convert track views
+# %%
+artists_to_clean = [
+'2 Chainz 8,145',
+'Chance the Rapper 47,380',
+'Childish Gambino 4,621',
+'Common 10,680',
+'E-40 2,486',
+'Future 4,246',
+'Ice Cube 2,636',
+'J. Cole 505',
+'JAY-Z 175',
+'Jeezy 4,855',
+'Lil Wayne 4,188',
+'Lupe Fiasco 1,619',
+'Mac Miller 37,632',
+'Nas 37,937',
+'Nipsey Hussle 3,475',
+'Rick Ross 4,992',
+'Royce da 5\'9\" 15,776',
+'Snoop Dogg 4,935',
+'T.I. 7,556',
+'The Game 1,170',
+'Too $hort 3,022',
+'Travis Scott 3,948'
+]
+
+
+# %%
+def clean_lyrics(lyrics):
+    
+    ## Convert words to lower case and split them
+    lyrics = lyrics.lower().split()
+    
+    ## Remove stop words
+    stopwords_list = set(stopwords.words("english"))
+    lyrics = [w for w in lyrics if not w in stopwords_list]
+    # stopword_list = stopwords.words('english')
+    # stopword_list += string.punctuation
+    
+    lyrics = " ".join(lyrics)
+    ## Clean the lyrics
+    lyrics = re.sub(r"\[[^\]]*\]", " ", lyrics)
+    lyrics = re.sub(r"\n", " ", lyrics)
+    lyrics = re.sub(r"[^A-Za-z0-9^,!.\/'+-=]", " ", lyrics)
+    return lyrics
+
+# %%
+df.artist = df.artist.apply(lambda x: x.replace(x, str(x.split(' ')[:-1])).replace("['",'').replace("']",'').replace("', '", " ").replace('\\','') if x in artists_to_clean else x)
+
+# %%
+# reg_brackets = '\[[^\]]*\]'
+# reg_newline = '\n'
+# df.lyrics[1][400:500]
+# df.lyrics.to_list()
+# re.sub(reg_brackets, ' ', ','.join(corpus))
+# re.sub(reg_newline, ' ', corpus)
+# %%
+# df.lyrics = df.lyrics.apply(lambda x: re.sub('\[[^\]]*\]', ' ', x))
+df.lyrics = df.lyrics.apply(lambda x: clean_lyrics(x))
+
+# %%
+df.lyrics[1]
+# %%
+y = df['region_code']
+X = df['lyrics']
+# %%
+X_train, X_test, y_train, y_test = train_test_split(X,y,random_state=123) 
+X_train.shape,y_test.shape
+# %%
+weights= compute_class_weight(
+           'balanced',
+            np.unique(y_train), 
+            y_train)
+
+weights_dict = dict(zip( np.unique(y_train),weights))
+weights_dict
+# %%
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
+
+# %%
+# y_train = pd.get_dummies(y_train)
+# y_test = pd.get_dummies(y_test)
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+# %%
+y_train
+y_test
+# %%
+## TOKENIZE TEXT
+MAX_WORDS = 6000
+MAX_SEQUENCE_LENGTH = 50
+
+tokenizer = text.Tokenizer(num_words=MAX_WORDS)
+
+tokenizer.fit_on_texts(X_train) #df['text'])
+train_sequences = tokenizer.texts_to_sequences(X_train)
+test_sequences = tokenizer.texts_to_sequences(X_test)#df['text'])
+
+
+## Find the longest sequence
+seq_lenghts = list(map(lambda x: len(x),[*y_train,*y_test]))
+max(seq_lenghts)
+# %%
+## Pad sequences
+X_train = sequence.pad_sequences(train_sequences, maxlen=MAX_SEQUENCE_LENGTH)
+
+X_test = sequence.pad_sequences(test_sequences, maxlen=MAX_SEQUENCE_LENGTH)
+X_train
+# %%
+len(tokenizer.index_word)
+# %%
+# %%
+# %%
+def get_earlystop(monitor='val_loss',patience=5, restore_best_weights=False):
+    """"""
+    args = locals()
+    return EarlyStopping(**args)
+
+get_earlystop.__doc__+=EarlyStopping.__doc__
+# %%
+model=Sequential()
+
+model.add(Embedding(MAX_WORDS, 128))
+model.add(LSTM(50,return_sequences=False))
+#     model.add(GlobalMaxPool1D()) 
+#     model.add(Dropout(0.5))
+model.add(Dense(50, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(50, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(4, activation='softmax'))
+
+model.compile(loss='categorical_crossentropy',#'categorical_crossentropy', 
+                optimizer='adam', 
+                metrics=['accuracy'])
+display(model.summary())
+
+history = model.fit(X_train, y_train, epochs=50,
+                batch_size=32, validation_split=0.2,callbacks=get_earlystop(),
+                class_weight=weights_dict)
+plot_results(history.history)
+evaluate_results(model)
+
+# %%
+
+# %%
+# %%
+
+# %%
+
+# %%
+
+# %%
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+total_vocabulary = set(word for lyrics in data for word in lyrics)
+# %%
+len(total_vocabulary)
+print('There are {} unique tokens in the dataset.'.format(len(total_vocabulary)))
+# %%
+glove = {}
+with open('glove.6B.50d.txt', 'rb') as f:
+    for line in f:
+        parts = line.split()
+        word = parts[0].decode('utf-8')
+        if word in total_vocabulary:
+            vector = np.array(parts[1:], dtype=np.float32)
+            glove[word] = vector
+# %%
+glove['game']
+# %%
+class W2vVectorizer(object):
+    
+    def __init__(self, w2v):
+        # Takes in a dictionary of words and vectors as input
+        self.w2v = w2v
+        if len(w2v) == 0:
+            self.dimensions = 0
+        else:
+            self.dimensions = len(w2v[next(iter(glove))])
+    
+    # Note: Even though it doesn't do anything, it's required that this object implement a fit method or else
+    # it can't be used in a scikit-learn pipeline  
+    def fit(self, X, y):
+        return self
+            
+    def transform(self, X):
+        return np.array([
+            np.mean([self.w2v[w] for w in words if w in self.w2v]
+                   or [np.zeros(self.dimensions)], axis=0) for words in X])
+# %%
+rf =  Pipeline([('Word2Vec Vectorizer', W2vVectorizer(glove)),
+              ('Random Forest', RandomForestClassifier(n_estimators=100, verbose=True))])
+svc = Pipeline([('Word2Vec Vectorizer', W2vVectorizer(glove)),
+                ('Support Vector Machine', SVC())])
+lr = Pipeline([('Word2Vec Vectorizer', W2vVectorizer(glove)),
+              ('Logistic Regression', LogisticRegression())])
+# %%
+models = [('Random Forest', rf),
+          ('Support Vector Machine', svc),
+          ('Logistic Regression', lr)]
+# %%
+scores = [(name, cross_val_score(model, data, target, cv=2).mean()) for name, model, in models]
+# %%
+scores
+# %%
+y = pd.get_dummies(target).values
+# %%
+tokenizer = text.Tokenizer(num_words=20000)
+tokenizer.fit_on_texts(list(df['lyrics']))
+list_tokenized_lyrics = tokenizer.texts_to_sequences(df['lyrics'])
+X_test = sequence.pad_sequences(list_tokenized_lyrics, maxlen=5000)
+# %%
+model = Sequential()
+embedding_size = 128
+model.add(Embedding(20000, embedding_size))
+model.add(LSTM(25, return_sequences=False))
+# model.add(GlobalMaxPool1D())
+model.add(Dropout(0.5))
+# model.add(LSTM(25, return_sequences=True))
+# model.add(GlobalMaxPool1D())
+# model.add(Dropout(0.5))
+model.add(Dense(50, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(50, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(4, activation='softmax'))
+
+model.compile(loss='categorical_crossentropy', 
+              optimizer='adam', 
+              metrics=['accuracy'])
+model.summary()
+
+history1 = model.fit(X_test, y, epochs=5, batch_size=32, validation_split=0.5)
+plot_results(history1.history)
+# %%
+# %%
+# evaluate_results(model)
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
 # %%
 reg_brackets = '\[[^\]]*\]'
 reg_newline = '\n'
