@@ -208,7 +208,7 @@ y_train
 y_test
 # %%
 ## TOKENIZE TEXT
-MAX_WORDS = 6000
+MAX_WORDS = 3000
 MAX_SEQUENCE_LENGTH = 50
 
 tokenizer = text.Tokenizer(num_words=MAX_WORDS)
@@ -241,8 +241,10 @@ get_earlystop.__doc__+=EarlyStopping.__doc__
 # %%
 model=Sequential()
 
-model.add(Embedding(MAX_WORDS, 128))
+model.add(Embedding(MAX_WORDS, 512))
+# model.add(LSTM(50,return_sequences=True))
 model.add(LSTM(50,return_sequences=False))
+# model.add(LSTM(25,return_sequences=False))
 #     model.add(GlobalMaxPool1D()) 
 #     model.add(Dropout(0.5))
 model.add(Dense(50, activation='relu'))
@@ -257,7 +259,7 @@ model.compile(loss='categorical_crossentropy',#'categorical_crossentropy',
 display(model.summary())
 
 history = model.fit(X_train, y_train, epochs=50,
-                batch_size=32, validation_split=0.2,callbacks=get_earlystop(),
+                batch_size=512, validation_split=0.2,callbacks=get_earlystop(),
                 class_weight=weights_dict)
 plot_results(history.history)
 evaluate_results(model)
