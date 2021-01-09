@@ -211,18 +211,22 @@ earlystop = tf.keras.callbacks.EarlyStopping(patience=10, verbose=True)
 Adam_32_32_32_D3_64 = tf.keras.models.Sequential([
     # Note the input shape is the desired size of the image 300x300 with 3 bytes color
     # This is the first convolution
-    tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(64, 64, 3)),
+    tf.keras.layers.Conv2D(64, (3,3), activation='relu', input_shape=(64, 64, 3)),
+    # tf.keras.layers.Conv2D(64, (3,3), activation='relu', input_shape=(64, 64, 3)),
+    # tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(64, 64, 3)),
     tf.keras.layers.MaxPooling2D(2, 2),
     # The second convolution
-    tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2,2),
-    tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2,2),
+    # tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
+    # tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
+    # tf.keras.layers.MaxPooling2D(2,2),
+    # tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
+    # tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
+    # tf.keras.layers.MaxPooling2D(2,2),
 
     tf.keras.layers.Flatten(),
+    # tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dense(64, activation='relu'),
+    # tf.keras.layers.Dense(32, activation='relu'),
     # Only 3 output neurond. It will contain a value from 0-2
     tf.keras.layers.Dense(4, activation='softmax')
 ])
@@ -238,7 +242,7 @@ history1 = Adam_32_32_32_D3_64.fit(
       X_train, 
       y_train,
     #   steps_per_epoch=8,  
-      batch_size=128,
+      batch_size=64,
       epochs=200, #epochs=15
       verbose=0,
       callbacks=[earlystop, tensorboard, checkpoint],
@@ -332,7 +336,7 @@ evaluate_results(Adam_32_32_128_D16)
 # %%
 
 # %%
-train_generator = train_datagen.flow_from_directory('../capstone-data/music/TRAIN/',  # Source dir for training images
+train_generator = train_datagen.flow_from_directory('../capstone-data/music - Copy/TRAIN/',  # Source dir for training images
                                                   target_size=(256, 256),  # All images will be resized to 150x150
                                                   batch_size=4273, #2086
                                                 #   color_mode='grayscale',

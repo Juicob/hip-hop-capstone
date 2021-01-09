@@ -45,6 +45,9 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras import initializers, regularizers, constraints, optimizers, layers
 from tensorflow.keras.preprocessing import text, sequence
 
+from gensim.models import Phrases
+from gensim.models.phrases import Phraser
+
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 print("Num GPUs Available: ", len(physical_devices))
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -177,6 +180,7 @@ def clean_lyrics(lyrics):
     lyrics = re.sub(r"\[[^\]]*\]", " ", lyrics)
     lyrics = re.sub(r"\n", " ", lyrics)
     lyrics = re.sub(r"[^A-Za-z0-9^,!.\/'+-=]", " ", lyrics)
+    lyrics = re.sub(r"  "," ", lyrics)
     return lyrics
 
 # %%
@@ -188,12 +192,35 @@ def clean_lyrics(lyrics):
 # df.lyrics.to_list()
 # re.sub(reg_brackets, ' ', ','.join(corpus))
 # re.sub(reg_newline, ' ', corpus)
+df.lyrics[1]
 # %%
 # df.lyrics = df.lyrics.apply(lambda x: re.sub('\[[^\]]*\]', ' ', x))
+df.lyrics = df.lyrics.apply(lambda x: x.replace('\n', 'newline'))
 df.lyrics = df.lyrics.apply(lambda x: clean_lyrics(x))
 
 # %%
-df.lyrics[4]
+df.lyrics[1]
+
+# %%
+# stopwords = []
+# documents = list(df[df['school'] == 'german_idealism']['gensim_tokenized'])
+# sentences = [sentence for sentence in documents]
+# cleaned = []
+# for sentence in sentences:
+#   cleaned_sentence = [word.lower() for word in sentence]
+#   cleaned_sentence = [word for word in sentence if word not in stopwords]
+#   cleaned.append(cleaned_sentence)
+# ! editing out
+df.lyrics = df.lyrics.apply(lambda x: x.split('newline'))
+bigram = Phrases(df.lyrics, min_count=1, threshold=10, delimiter=b' ')
+bigram_phraser = Phraser(bigram)
+tokens_list = []
+for sent in df.lyrics:
+    tokens_ = bigram_phraser[sent]
+    tokens_list.append(tokens_)
+# %%
+tokens_list[0][3]
+# ! might need to move this for after the vec table to feed into the rand forest model
 # %%
 df_grouped = df.groupby(by='region').agg(lambda x:' '.join(x))
 # %%
@@ -216,7 +243,7 @@ nb.fit(X_train.todense(), y_train)
 # %%
 rf = RandomForestClassifier()
 rf.fit(X_train.todense(), y_train)
-
+#
 # %%
 rf_param_grid={'max_depth': [1,2,3, None],
             'max_leaf_nodes': [2,3,5,None],
@@ -228,20 +255,20 @@ rf_param_grid={'max_depth': [1,2,3, None],
             'random_state':[42]
 }
 # %%
-%%time
-n_iter_search = 100
-random_search = RandomizedSearchCV(rf, param_distributions=rf_param_grid,
-                                   n_iter=n_iter_search, cv=5, n_jobs=4)
+# %%time
+# n_iter_search = 100
+# random_search = RandomizedSearchCV(rf, param_distributions=rf_param_grid,
+#                                    n_iter=n_iter_search, cv=5, n_jobs=4)
 
-start = time()
-random_search.fit(X_train, y_train)
-print("RandomizedSearchCV took %.2f seconds for %d candidates"
-      " parameter settings." % ((time() - start), n_iter_search))
-display(report(random_search.cv_results_))
-display(random_search.best_estimator_)
+# start = time()
+# random_search.fit(X_train, y_train)
+# print("RandomizedSearchCV took %.2f seconds for %d candidates"
+#       " parameter settings." % ((time() - start), n_iter_search))
+# display(report(random_search.cv_results_))
+# display(random_search.best_estimator_)
 # %%
-random_best = random_search.best_estimator_
-
+# random_best = random_search.best_estimator_
+random_best = RandomForestClassifier(min_samples_leaf=2, n_estimators=500, random_state=42)
 # %%
 # random_best.fit(X_train, y_train)
 # %%
@@ -250,7 +277,7 @@ random_best = random_search.best_estimator_
 # %%
 # display(plot_confusion_matrix(random_search, X_train, y_train, normalize='true', cmap='bone'))
 # display(plot_confusion_matrix(random_search, X_test, y_test, normalize='true', cmap='bone'))
-evaluate_model(random_search, X_train, X_test)
+evaluate_model(random_best, X_train, X_test)
 # display(plot_confusion_matrix(rf, X_test, y_test, normalize='true', cmap='bone'))
 evaluate_model(rf, X_train, X_test)
 # %%
@@ -342,8 +369,11 @@ print(east_token_coefs,midwest_token_coefs, south_token_coefs,west_token_coefs)
 evaluate_model(lr, X_train, X_test)
 # %%
 # %%
+df.lyrics = df.lyrics.apply(lambda x: x.split('  '))
+# df.lyrics[1]
 # %%
-# %%
+df.lyrics[1][7]
+
 # %%
 # %%
 # %%
