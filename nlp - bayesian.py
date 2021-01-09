@@ -199,13 +199,14 @@ df_grouped = df.groupby(by='region').agg(lambda x:' '.join(x))
 # %%
 len(df_grouped.lyrics[0])
 # %%
-vectorizer = TfidfVectorizer(analyzer='word')#decode_error='ignore')
+# * Play with ngrams for clouds and charts
+vectorizer = TfidfVectorizer(analyzer='word')#, ngram_range=(2,2))#decode_error='ignore')
 vec_table = vectorizer.fit_transform(df_grouped.lyrics)
 vec_table = pd.DataFrame(vec_table.toarray(), columns=vectorizer.get_feature_names())
 vec_table.index = df_grouped.index
 vec_table
 # %%
-# vec_table.idxmax(axis=1)
+vec_table
 # %%
 X_train = vectorizer.fit_transform(df.lyrics)
 X_test = vectorizer.transform(df_test.lyrics)
@@ -214,7 +215,7 @@ nb = MultinomialNB()
 nb.fit(X_train.todense(), y_train)
 # %%
 rf = RandomForestClassifier()
-rf.fit(X_train, y_train)
+rf.fit(X_train.todense(), y_train)
 
 # %%
 rf_param_grid={'max_depth': [1,2,3, None],
@@ -240,17 +241,17 @@ display(report(random_search.cv_results_))
 display(random_search.best_estimator_)
 # %%
 random_best = random_search.best_estimator_
-random_best.fit(X_train, y_train)
+
 # %%
-evaluate_model(random_best,X_train, y_train)
+# random_best.fit(X_train, y_train)
+# %%
  # %%
 #  Using the best estimator to refit and and ouput the results
-display(random_best.score(X_train, y_train), random_best.score(X_test, y_test))
 # %%
-display(plot_confusion_matrix(random_search, X_train, y_train, normalize='true', cmap='bone'))
-display(plot_confusion_matrix(random_search, X_test, y_test, normalize='true', cmap='bone'))
+# display(plot_confusion_matrix(random_search, X_train, y_train, normalize='true', cmap='bone'))
+# display(plot_confusion_matrix(random_search, X_test, y_test, normalize='true', cmap='bone'))
 evaluate_model(random_search, X_train, X_test)
-display(plot_confusion_matrix(rf, X_test, y_test, normalize='true', cmap='bone'))
+# display(plot_confusion_matrix(rf, X_test, y_test, normalize='true', cmap='bone'))
 evaluate_model(rf, X_train, X_test)
 # %%
 # Initializing gridsearch and fitting, and outputting the results and grabbing the best estimator
