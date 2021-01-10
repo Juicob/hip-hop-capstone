@@ -192,14 +192,14 @@ def clean_lyrics(lyrics):
 # df.lyrics.to_list()
 # re.sub(reg_brackets, ' ', ','.join(corpus))
 # re.sub(reg_newline, ' ', corpus)
-df.lyrics[1]
+df.lyrics[7]
 # %%
 # df.lyrics = df.lyrics.apply(lambda x: re.sub('\[[^\]]*\]', ' ', x))
 df.lyrics = df.lyrics.apply(lambda x: x.replace('\n', 'newline'))
 df.lyrics = df.lyrics.apply(lambda x: clean_lyrics(x))
 
 # %%
-df.lyrics[1]
+df.lyrics[7]
 
 # %%
 # stopwords = []
@@ -210,24 +210,34 @@ df.lyrics[1]
 #   cleaned_sentence = [word.lower() for word in sentence]
 #   cleaned_sentence = [word for word in sentence if word not in stopwords]
 #   cleaned.append(cleaned_sentence)
-# ! editing out
 df.lyrics = df.lyrics.apply(lambda x: x.split('newline'))
-bigram = Phrases(df.lyrics, min_count=1, threshold=10, delimiter=b' ')
+bigram = Phrases(df.lyrics, min_count=1, threshold=10, delimiter=b'__')
+
 bigram_phraser = Phraser(bigram)
-tokens_list = []
-for sent in df.lyrics:
-    tokens_ = bigram_phraser[sent]
-    tokens_list.append(tokens_)
+# tokens_list = []
+# for sent in df.lyrics:
+#     tokens_ = bigram_phraser[sent]
+df['phrases'] = df.lyrics.apply(lambda x:bigram_phraser[x])
+#     tokens_list.append(tokens_)
+
+df.lyrics = df.lyrics.apply(lambda x:' '.join(x))
+df.phrases = df.phrases.apply(lambda x:' '.join(x))
 # %%
-tokens_list[0][3]
+# %%
+df.shape
+# %%
 # ! might need to move this for after the vec table to feed into the rand forest model
+# %%
+df.phrases[1]
 # %%
 df_grouped = df.groupby(by='region').agg(lambda x:' '.join(x))
 # %%
 len(df_grouped.lyrics[0])
 # %%
+df_grouped.lyrics[2]
+# %%
 # * Play with ngrams for clouds and charts
-vectorizer = TfidfVectorizer(analyzer='word')#, ngram_range=(2,2))#decode_error='ignore')
+vectorizer = TfidfVectorizer(analyzer='word', ngram_range=(1,2))#decode_error='ignore')
 vec_table = vectorizer.fit_transform(df_grouped.lyrics)
 vec_table = pd.DataFrame(vec_table.toarray(), columns=vectorizer.get_feature_names())
 vec_table.index = df_grouped.index
@@ -244,6 +254,7 @@ nb.fit(X_train.todense(), y_train)
 rf = RandomForestClassifier()
 rf.fit(X_train.todense(), y_train)
 #
+# ! clear out ram before running nb and rb
 # %%
 rf_param_grid={'max_depth': [1,2,3, None],
             'max_leaf_nodes': [2,3,5,None],
@@ -279,7 +290,7 @@ random_best = RandomForestClassifier(min_samples_leaf=2, n_estimators=500, rando
 # display(plot_confusion_matrix(random_search, X_test, y_test, normalize='true', cmap='bone'))
 evaluate_model(random_best, X_train, X_test)
 # display(plot_confusion_matrix(rf, X_test, y_test, normalize='true', cmap='bone'))
-evaluate_model(rf, X_train, X_test)
+# evaluate_model(rf, X_train, X_test)
 # %%
 # Initializing gridsearch and fitting, and outputting the results and grabbing the best estimator
 gridsearch = GridSearchCV(estimator=RandomForestClassifier(), param_grid=rf_param_grid, 
