@@ -19,6 +19,7 @@ import seaborn as sns
 import nltk
 from nltk import word_tokenize
 from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
 from gensim.models import word2vec
 
 from sklearn.ensemble import RandomForestClassifier
@@ -115,6 +116,38 @@ def report(results, n_top=3):
             print("Parameters: {0}".format(results['params'][candidate]))
             print("")
 
+def plot_conf_matrix(y_true, y_pred):
+    
+    """
+    Plots a confusion matrix and displays classification report.
+    """
+    
+    cm = confusion_matrix(y_true, y_pred, normalize='true')
+    plt.figure(figsize=(7, 7))
+    sns.heatmap(cm, annot=True, cmap='Blues', fmt='0.2g', annot_kws={"size": 14},
+                xticklabels=nb.classes_, yticklabels=nb.classes_, square=True)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.show()
+
+
+def evaluate_model(model, X_train, X_test):
+    y_preds_train = model.predict(X_train.todense())
+    y_preds_test = model.predict(X_test.todense())
+
+    # print('Training Accuracy:', accuracy(y_train, y_preds_train, average='weighted'))
+    print('Training Accuracy:', accuracy_score(y_train, y_preds_train))
+    print('Testing Accuracy:', accuracy_score(y_test, y_preds_test))
+    print('Training Recall:', recall_score(y_train, y_preds_train, average='weighted'))
+    print('Testing Recall:', recall_score(y_test, y_preds_test, average='weighted'))
+    print('\n---------------\n')
+    print('Train Confusion Matrix\n')
+    plot_conf_matrix(y_train, y_preds_train)
+    print('Test Confusion Matrix\n')
+    plot_conf_matrix(y_test, y_preds_test)
+    print('\n----------------\n')
+    print(classification_report(y_test, y_preds_test))
+
 # %%
 df = pd.read_csv('../capstone-data/lyrics/lyrics_main.csv',encoding='unicode_escape')
 print('-- Dataframe shape: ',df.shape)
@@ -195,11 +228,13 @@ def clean_lyrics(lyrics):
 df.lyrics[7]
 # %%
 # df.lyrics = df.lyrics.apply(lambda x: re.sub('\[[^\]]*\]', ' ', x))
+df.lyrics = df.lyrics.apply(lambda x: x.replace('\n', ' \n '))
 df.lyrics = df.lyrics.apply(lambda x: x.replace('\n', 'newline'))
 df.lyrics = df.lyrics.apply(lambda x: clean_lyrics(x))
-
+df['lemmatized_lyrics'] = df.lyrics.apply(lambda x: WordNetLemmatizer().lemmatize(x))
 # %%
-df.lyrics[7]
+display(df.lemmatized_lyrics[7])
+display(df.lyrics[7])
 
 # %%
 # stopwords = []
@@ -211,6 +246,7 @@ df.lyrics[7]
 #   cleaned_sentence = [word for word in sentence if word not in stopwords]
 #   cleaned.append(cleaned_sentence)
 df.lyrics = df.lyrics.apply(lambda x: x.split('newline'))
+df.lemmatized_lyrics = df.lemmatized_lyrics.apply(lambda x: x.split('newline'))
 bigram = Phrases(df.lyrics, min_count=1, threshold=10, delimiter=b'__')
 
 bigram_phraser = Phraser(bigram)
@@ -221,8 +257,11 @@ df['phrases'] = df.lyrics.apply(lambda x:bigram_phraser[x])
 #     tokens_list.append(tokens_)
 
 df.lyrics = df.lyrics.apply(lambda x:' '.join(x))
+df.lemmatized_lyrics = df.lemmatized_lyrics.apply(lambda x:' '.join(x))
 df.phrases = df.phrases.apply(lambda x:' '.join(x))
 # %%
+display(df.lemmatized_lyrics[7])
+display(df.lyrics[7])
 # %%
 df.shape
 # %%
@@ -237,7 +276,7 @@ len(df_grouped.lyrics[0])
 df_grouped.lyrics[2]
 # %%
 # * Play with ngrams for clouds and charts
-vectorizer = TfidfVectorizer(analyzer='word', ngram_range=(1,2))#decode_error='ignore')
+vectorizer = TfidfVectorizer(analyzer='word')#, ngram_range=(1,2))#decode_error='ignore')
 vec_table = vectorizer.fit_transform(df_grouped.lyrics)
 vec_table = pd.DataFrame(vec_table.toarray(), columns=vectorizer.get_feature_names())
 vec_table.index = df_grouped.index
@@ -247,12 +286,20 @@ vec_table
 # %%
 X_train = vectorizer.fit_transform(df.lyrics)
 X_test = vectorizer.transform(df_test.lyrics)
+X_train_lemm = vectorizer.fit_transform(df.lemmatized_lyrics)
+X_test_lemm = vectorizer.transform(df_test.lyrics)
+y_train = df.region
+y_test = df_test.region
 # %%
 nb = MultinomialNB()
 nb.fit(X_train.todense(), y_train)
+nb_lemm = MultinomialNB()
+nb_lemm.fit(X_train_lemm.todense(), y_train)
 # %%
 rf = RandomForestClassifier()
 rf.fit(X_train.todense(), y_train)
+rf_lemm = RandomForestClassifier()
+rf_lemm.fit(X_train.todense(), y_train)
 #
 # ! clear out ram before running nb and rb
 # %%
@@ -280,17 +327,25 @@ rf_param_grid={'max_depth': [1,2,3, None],
 # %%
 # random_best = random_search.best_estimator_
 random_best = RandomForestClassifier(min_samples_leaf=2, n_estimators=500, random_state=42)
+random_best_lemm = RandomForestClassifier(min_samples_leaf=2, n_estimators=500, random_state=42)
 # %%
-# random_best.fit(X_train, y_train)
+random_best.fit(X_train.todense(), y_train)
+random_best_lemm.fit(X_train_lemm.todense(), y_train)
 # %%
  # %%
 #  Using the best estimator to refit and and ouput the results
 # %%
 # display(plot_confusion_matrix(random_search, X_train, y_train, normalize='true', cmap='bone'))
 # display(plot_confusion_matrix(random_search, X_test, y_test, normalize='true', cmap='bone'))
+print('random_best')
 evaluate_model(random_best, X_train, X_test)
+print('random_best_lemm')
+evaluate_model(random_best_lemm, X_train_lemm, X_test)
 # display(plot_confusion_matrix(rf, X_test, y_test, normalize='true', cmap='bone'))
-# evaluate_model(rf, X_train, X_test)
+print('baseline random forest')
+evaluate_model(rf, X_train, X_test)
+print('random forest_lemm')
+evaluate_model(rf_lemm, X_train_lemm, X_test)
 # %%
 # Initializing gridsearch and fitting, and outputting the results and grabbing the best estimator
 gridsearch = GridSearchCV(estimator=RandomForestClassifier(), param_grid=rf_param_grid, 
@@ -302,37 +357,10 @@ display(gridsearch.best_score_)
 gridbest = gridsearch.best_estimator_
 
 # %%
-def plot_conf_matrix(y_true, y_pred):
-    
-    """
-    Plots a confusion matrix and displays classification report.
-    """
-    
-    cm = confusion_matrix(y_true, y_pred, normalize='true')
-    plt.figure(figsize=(7, 7))
-    sns.heatmap(cm, annot=True, cmap='Blues', fmt='0.2g', annot_kws={"size": 14},
-                xticklabels=nb.classes_, yticklabels=nb.classes_, square=True)
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.show()
+random_best.feature_importances_
+#%%
 
 
-def evaluate_model(model, X_train, X_test):
-    y_preds_train = model.predict(X_train.todense())
-    y_preds_test = model.predict(X_test.todense())
-
-    # print('Training Accuracy:', accuracy(y_train, y_preds_train, average='weighted'))
-    print('Training Accuracy:', accuracy_score(y_train, y_preds_train))
-    print('Testing Accuracy:', accuracy_score(y_test, y_preds_test))
-    print('Training Recall:', recall_score(y_train, y_preds_train, average='weighted'))
-    print('Testing Recall:', recall_score(y_test, y_preds_test, average='weighted'))
-    print('\n---------------\n')
-    print('Train Confusion Matrix\n')
-    plot_conf_matrix(y_train, y_preds_train)
-    print('Test Confusion Matrix\n')
-    plot_conf_matrix(y_test, y_preds_test)
-    print('\n----------------\n')
-    print(classification_report(y_test, y_preds_test))
 # %%
 evaluate_model(nb, X_train, X_test)
 # %%
@@ -340,13 +368,18 @@ evaluate_model(rf, X_train, X_test)
 
 # %%
 
+feature_shape = rf.feature_importances_.shape[0]
 # %%
-vec_table.columns
+rf.feature_importances_
 # %%
 feature_importances = pd.DataFrame(rf.feature_importances_,
-                                   index = vec_table.columns,
+                                   index = vec_table.iloc[0][:feature_shape],
                                     columns=['importance']).sort_values('importance',ascending=False)
-feature_importances[:100]
+feature_importances
+# %%
+feature_importances.reset_index(index)
+# ! reser index to be ve_table columns
+# rf.classes_
 # %%
 importances = rf.feature_importances_
 np.argsort(importances)[::-1]
