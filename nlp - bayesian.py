@@ -32,6 +32,10 @@ from sklearn.utils.class_weight import compute_class_weight
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB, GaussianNB
 from sklearn.metrics import recall_score, confusion_matrix, classification_report, accuracy_score, plot_confusion_matrix
+import lime 
+from lime import lime_text
+from lime.lime_text import LimeTextExplainer
+from sklearn.pipeline import make_pipeline
 
 from sklearn import metrics
 
@@ -291,6 +295,7 @@ X_test_lemm = vectorizer.transform(df_test.lyrics)
 y_train = df.region
 y_test = df_test.region
 # %%
+# %%
 nb = MultinomialNB()
 nb.fit(X_train.todense(), y_train)
 nb_lemm = MultinomialNB()
@@ -370,14 +375,13 @@ evaluate_model(rf, X_train, X_test)
 
 feature_shape = rf.feature_importances_.shape[0]
 # %%
-rf.feature_importances_
+rf.feature_importances_.shape
 # %%
 feature_importances = pd.DataFrame(rf.feature_importances_,
                                    index = vec_table.iloc[0][:feature_shape],
                                     columns=['importance']).sort_values('importance',ascending=False)
 feature_importances
 # %%
-feature_importances.reset_index(index)
 # ! reser index to be ve_table columns
 # rf.classes_
 # %%
@@ -410,6 +414,11 @@ south_token_coefs = get_feature_coef(2)
 west_token_coefs = get_feature_coef(3)
 print(east_token_coefs,midwest_token_coefs, south_token_coefs,west_token_coefs)
 # %%
+east_token_coefs.to_csv('../capstone-data/lyrics/east_tokens.csv')
+midwest_token_coefs.to_csv('../capstone-data/lyrics/midwest_tokens.csv')
+south_token_coefs.to_csv('../capstone-data/lyrics/south_tokens.csv')
+west_token_coefs.to_csv('../capstone-data/lyrics/west_tokens.csv')
+# %%
 evaluate_model(lr, X_train, X_test)
 # %%
 # %%
@@ -420,6 +429,7 @@ df.lyrics[1][7]
 
 # %%
 # %%
+
 # %%
 # %%
 # %%
