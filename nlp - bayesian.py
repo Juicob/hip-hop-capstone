@@ -196,6 +196,16 @@ artists_to_clean = [
 
 df.artist = df.artist.apply(lambda x: x.replace(x, str(x.split(' ')[:-1])).replace("['",'').replace("']",'').replace("', '", " ").replace('\\','') if x in artists_to_clean else x)
 # %%
+df.track_views = df.track_views.fillna('0M')
+df.track_views = df.track_views.apply(lambda x: float(x.replace('M','')) * 1000000 if 'M' in x else (float(x.replace('K',''))) * 1000)
+df.track_views = df.track_views.astype('int64')
+df.release_date = df.release_date.fillna(0)
+df.release_date = df.release_date.astype('int64')
+# %%
+# df.head()
+# %%
+# df.to_csv('../capstone-data/lyrics/lyrics_main_edited.csv')
+# %%
 df_trimmed = df[['region', 'lyrics']]
 # %%
 df, df_test = train_test_split(df_trimmed, test_size=.2, shuffle=True, random_state=42)
