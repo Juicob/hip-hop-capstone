@@ -177,7 +177,7 @@ X_all,y_all = next(train_generator)
 
 
 # %%
-X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=0.1, random_state=42, shuffle=True)
+X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=0.2, random_state=42, shuffle=True)
 # %%
 print(X_train.shape)
 print(y_train.shape)
@@ -207,7 +207,7 @@ print(train_generator.class_indices)
 ## Begin modeling
 # %%
 %%time
-earlystop = tf.keras.callbacks.EarlyStopping(patience=10, verbose=True)
+earlystop = tf.keras.callbacks.EarlyStopping(patience=3, verbose=True)
 Adam_32_32_32_D3_64 = tf.keras.models.Sequential([
     # Note the input shape is the desired size of the image 300x300 with 3 bytes color
     # This is the first convolution
@@ -479,7 +479,7 @@ history6 = Adam_32_64_64_64.fit(
 plot_results(history6.history)
 evaluate_results(Adam_32_64_64_64)
 # %%
-earlystop = tf.keras.callbacks.EarlyStopping(patience=5, verbose=True)
+earlystop = tf.keras.callbacks.EarlyStopping(patience=3, verbose=True)
 Adam_32_64_64_64_P5 = tf.keras.models.Sequential([
     # Note the input shape is the desired size of the image 300x300 with 3 bytes color
     # This is the first convolution
