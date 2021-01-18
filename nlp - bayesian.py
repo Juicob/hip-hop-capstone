@@ -374,7 +374,7 @@ gridbest = gridsearch.best_estimator_
 # %%
 random_best.feature_importances_
 #%%
-random_best.featire_importances_[0]
+# random_best.featire_importances_[0]
 
 # %%
 evaluate_model(nb, X_train, X_test)
