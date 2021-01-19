@@ -177,14 +177,14 @@ X_all,y_all = next(train_generator)
 
 
 # %%
-X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=0.2, random_state=42, shuffle=True)
+X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=0.4, random_state=42, shuffle=True)
 # %%
 print(X_train.shape)
 print(y_train.shape)
 print(X_test.shape)
 print(y_test.shape)
 # %%
-X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.2, random_state=42, shuffle=True) 
+X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.4, random_state=42, shuffle=True) 
 # %%
 
 print(X_test.shape)
@@ -354,6 +354,7 @@ Adam256_32_32_32_D3_64 = tf.keras.models.Sequential([
     # This is the first convolution
     # tf.keras.layers.Conv2D(32, (7,7), activation='relu', input_shape=(256, 256, 3)),
     tf.keras.layers.Conv2D(32, (7,7), activation='relu', input_shape=(256, 256, 3)),
+    # tf.keras.layers.Conv2D(32, (7,7), activation='relu', input_shape=(256, 256, 3)),
     tf.keras.layers.MaxPooling2D(3,3),
     # The second convolution
     tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
@@ -365,7 +366,7 @@ Adam256_32_32_32_D3_64 = tf.keras.models.Sequential([
     tf.keras.layers.MaxPooling2D(3,3),
 
     tf.keras.layers.Flatten(),
-    # tf.keras.layers.Dense(64, activation='relu'),
+    # tf.keras.layers.Dense(32, activation='relu'),
     # tf.keras.layers.Dense(64, activation='relu'),
     # tf.keras.layers.Dense(64, activation='relu'),
     # Only 3 output neurond. It will contain a value from 0-2
@@ -377,6 +378,7 @@ Adam256_32_32_32_D3_64.compile(loss='categorical_crossentropy',
               optimizer="Adam",
               metrics=['accuracy',tf.keras.metrics.Recall()])
 
+earlystop = tf.keras.callbacks.EarlyStopping(patience=3, verbose=True)
 checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/Adam_32_32_32_D3_64_', verbose=0, save_best_only=True, mode='auto')
 tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_32_32_D3_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
 history1 = Adam256_32_32_32_D3_64.fit(
