@@ -153,30 +153,14 @@ train_generator = train_datagen.flow_from_directory('../capstone-data/music - Co
                                                   subset='training',
                                                   shuffle=True)
 
-# val_generator = test_val_datagen.flow_from_directory('../capstone-data/music/TRAIN/', # This is th source dir for validation images
-#                                                  target_size=(64, 64),  # All images will be resized to 150x150
-#                                                  batch_size=852, #435
-#                                                  color_mode='grayscale',
-#                                                  # Since we use categorical_crossentropy loss, we need binary labels
-#                                                  class_mode='categorical',
-#                                                  subset='validation',
-#                                                  shuffle=True)
-
-# test_generator = test_val_datagen.flow_from_directory('../capstone-data/music/TRAIN/', # This is th source dir for validation images
-#                                                  target_size=(64, 64),  # All images will be resized to 150x150
-#                                                  batch_size=4273, #1752
-#                                                  color_mode='grayscale',
-#                                                  # Since we use categorical_crossentropy loss, we need binary labels
-#                                                  class_mode='categorical',
-#                                                 #  subset='training',
-#                                                  shuffle=False)       
-
 X_all,y_all = next(train_generator)
 # X_test,y_test = next(test_generator)
 # X_val,y_val = next(val_generator)
 
 
 # %%
+
+
 X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=0.4, random_state=42, shuffle=True)
 # %%
 print(X_train.shape)
@@ -209,25 +193,10 @@ print(train_generator.class_indices)
 %%time
 earlystop = tf.keras.callbacks.EarlyStopping(patience=3, verbose=True)
 Adam_32_32_32_D3_64 = tf.keras.models.Sequential([
-    # Note the input shape is the desired size of the image 300x300 with 3 bytes color
-    # This is the first convolution
     tf.keras.layers.Conv2D(64, (3,3), activation='relu', input_shape=(64, 64, 3)),
-    # tf.keras.layers.Conv2D(64, (3,3), activation='relu', input_shape=(64, 64, 3)),
-    # tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(64, 64, 3)),
     tf.keras.layers.MaxPooling2D(2, 2),
-    # The second convolution
-    # tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
-    # tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
-    # tf.keras.layers.MaxPooling2D(2,2),
-    # tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
-    # tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
-    # tf.keras.layers.MaxPooling2D(2,2),
-
     tf.keras.layers.Flatten(),
-    # tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dense(64, activation='relu'),
-    # tf.keras.layers.Dense(32, activation='relu'),
-    # Only 3 output neurond. It will contain a value from 0-2
     tf.keras.layers.Dense(4, activation='softmax')
 ])
 
@@ -241,9 +210,8 @@ tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_32_32_D3_64_{d
 history1 = Adam_32_32_32_D3_64.fit(
       X_train, 
       y_train,
-    #   steps_per_epoch=8,  
       batch_size=64,
-      epochs=200, #epochs=15
+      epochs=200,
       verbose=0,
       callbacks=[earlystop, tensorboard, checkpoint],
       validation_data=(X_val, y_val))
@@ -251,13 +219,6 @@ history1 = Adam_32_32_32_D3_64.fit(
 plot_results(history1.history)
 evaluate_results(Adam_32_32_32_D3_64)
 
-# %%
-'''predictions = RMSprop_32_64.predict(x=test_generator, verbose=2)
-np.round(predictions)
-cm = confusion_matrix(y_true=test_generator.classes, y_pred=np.argmax(predictions, axis=-1))'''
-# %%
-'''from sklearn import metrics
-print(metrics.classification_report(y_test, predictions.round()))'''
 # %%
 %%time
 Adam_32_32_128_D32 = tf.keras.models.Sequential([
@@ -284,18 +245,14 @@ tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_32_128_D32{dat
 history2 = Adam_32_32_128_D32.fit(
       X_train, 
       y_train,
-    #   steps_per_epoch=8,  
       batch_size=128,
-      epochs=200, #epochs=15
+      epochs=200,
       verbose=0,
       callbacks=[earlystop, tensorboard, checkpoint],
       validation_data=(X_val, y_val))
 
 plot_results(history2.history)
 evaluate_results(Adam_32_32_128_D32)
-# %%
-
-# %%
 
 # %%
 %%time
@@ -306,9 +263,7 @@ Adam_32_32_128_D16 = tf.keras.models.Sequential([
     tf.keras.layers.MaxPooling2D(2,2),
     tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
     tf.keras.layers.MaxPooling2D(2,2),
-
     tf.keras.layers.Flatten(),
-
     tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dense(64, activation='relu'),
     tf.keras.layers.Dense(4, activation='softmax')
@@ -324,23 +279,19 @@ tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_32_128_D16{dat
 history3 = Adam_32_32_128_D16.fit(
       X_train, 
       y_train,
-    #   steps_per_epoch=8,  
       batch_size=128,
-      epochs=200, #epochs=15
+      epochs=200,
       verbose=0,
       callbacks=[earlystop, tensorboard, checkpoint],
       validation_data=(X_val, y_val))
 
 plot_results(history3.history)
 evaluate_results(Adam_32_32_128_D16)
-# %%
 
 # %%
-train_generator = train_datagen.flow_from_directory('../capstone-data/music - Copy/TRAIN/',  # Source dir for training images
-                                                  target_size=(256, 256),  # All images will be resized to 150x150
-                                                  batch_size=4273, #2086
-                                                #   color_mode='grayscale',
-                                                  # Since we use categorical_crossentropy loss, we need binary labels
+train_generator = train_datagen.flow_from_directory('../capstone-data/music - Copy/TRAIN/',
+                                                  target_size=(256, 256), 
+                                                  batch_size=4273, 
                                                   class_mode='categorical',
                                                   subset='training',
                                                   shuffle=True)
@@ -350,26 +301,14 @@ X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.2, r
 # %%
 %%time
 Adam256_32_32_32_D3_64 = tf.keras.models.Sequential([
-    # Note the input shape is the desired size of the image 300x300 with 3 bytes color
-    # This is the first convolution
-    # tf.keras.layers.Conv2D(32, (7,7), activation='relu', input_shape=(256, 256, 3)),
     tf.keras.layers.Conv2D(32, (7,7), activation='relu', input_shape=(256, 256, 3)),
-    # tf.keras.layers.Conv2D(32, (7,7), activation='relu', input_shape=(256, 256, 3)),
     tf.keras.layers.MaxPooling2D(3,3),
-    # The second convolution
     tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
-    # tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
-    # tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
     tf.keras.layers.MaxPooling2D(3,3),
-    # tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
     tf.keras.layers.Conv2D(32, (7,7), activation='relu'),
     tf.keras.layers.MaxPooling2D(3,3),
 
     tf.keras.layers.Flatten(),
-    # tf.keras.layers.Dense(32, activation='relu'),
-    # tf.keras.layers.Dense(64, activation='relu'),
-    # tf.keras.layers.Dense(64, activation='relu'),
-    # Only 3 output neurond. It will contain a value from 0-2
     tf.keras.layers.Dense(4, activation='softmax')
 ])
 
@@ -384,9 +323,8 @@ tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_32_32_D3_64_{d
 history1 = Adam256_32_32_32_D3_64.fit(
       X_train, 
       y_train,
-    #   steps_per_epoch=8,  
       batch_size=128,
-      epochs=200, #epochs=15
+      epochs=200,
       verbose=0,
       callbacks=[earlystop, tensorboard, checkpoint],
       validation_data=(X_val, y_val))
@@ -396,30 +334,15 @@ evaluate_results(Adam256_32_32_32_D3_64)
 # %%
 
 # %%
-# visualkeras.layered_view(Adam_32_32_32_32, to_file='network_visual.png').show()
+# visualkeras.layered_view(Adam256_32_32_32_D3_64, to_file='network_visual.png').show()
 # %% [markdown]
 # After iterating over and running all the models I viewed the results of each as well as their compared accuracy/loss graphs via tensorboard. I found that the "Adam_32_32_32_32" model performed the best and stored the model within a separate filepath to ensure it doesn't get written over or compromised..
 # %%
 best_model = tf.keras.models.load_model('Adam_32_32_32_32__best')
 
 # %%
-# earlystop = tf.keras.callbacks.EarlyStopping(patience=3, verbose=True)
-# checkpoint = ModelCheckpoint(filepath=r'../capstone-data/checkpoints/testloadd.hdf5', verbose=1, save_best_only=True, save_weights_only=True, mode='auto')
-# tensorboard = TensorBoard(log_dir=f'../capstone-data/logs/Adam_32_64_64_64_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}')
-# test_HISTORY = best_model.fit(
-#       X_train, 
-#       y_train,
-#     #   steps_per_epoch=8,  
-#       batch_size=128,
-#       epochs=100, #epochs=15
-#       verbose=1,
-#       callbacks=[earlystop],
-#       validation_data=(X_val, y_val))
-# %%
 evaluate_results(best_model)
-# %% [markdown]
-## Best Model
-# I selected this as the best model because it had the highest accuracy at 88%. While this model does not have the highest recall which is what I would like to maximize, I believe sacrificing 4 percentage points of correctly identifying pneumonia was worth the 25% increase of correctly identifying normal lungs. 
+
 # %% [markdown]
 ## Creating network topology visual 
 # %%
@@ -476,46 +399,3 @@ fig.show()
 #   * Using transfer learning from a model that was pre-trained on x-rays with and without pneumonia would yield better results in less time and with less resources. You'll spend less time iterating on network variations as the pre-trained model will already have done most of the work. Fine tuning will take considerably less time and resources and yield just as good if not better results from the right model.
 # * Resources
 #   * Before you decide to get into CNN's, be sure you have the appropriate resources available to you. Training a CNN over thousands of images is going to take a long time and a lot your computer's resources if you don't have sufficient RAM or GPU. If you don't have the hardware available to you, there are cloud services such as Google Colab that offer access GPU processers virtually through the cloud at low to no cost. 
-
-# %% [markdown]
-## Leaving below code for review
-# %%
-from img_classification import teachable_machine_classification
-from PIL import Image, ImageOps
-image = Image.open(r'D:\Python_Projects\flatiron\class-materials\phase04\project_image_data\test\NORMAL\IM-0006-0001.jpeg')
-weights_file = "./Adam_32_32_32_32__best"
-
-label = teachable_machine_classification(image, weights_file)
-print(label)
-if label == 0:
-    print("The image has pneumonia")
-else:
-    print("The image is healthy")
-# %%
-import lime
-from lime import lime_image
-from lime import lime_base
-
-from lime.wrappers.scikit_image import SegmentationAlgorithm
-from skimage.segmentation import mark_boundaries
-# %%
-# i = np.random.choice(range(len(y_train)))
-label = y_train[24]
-img = X_train[24]
-# %%
-pred = Adam_32_64_64_64.predict(np.array([img]))
-pred_class = int(pred.round())
-# %%
-# labels = train_generator.class_indices
-print(f"Image 24 = {label}: Pneumonia")
-print(f"Model Predicts {pred_class}")
-array_to_img(img)
-
-# array_to_img(img)
-# %%
-explainer = lime_image.LimeImageExplainer()
-
-explanation = explainer.explain_instance(img, Adam_32_64_64_64.predict, top_labels=2,
-                                         hide_color=None, num_samples=2000)
-
-# %%
