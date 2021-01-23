@@ -356,6 +356,7 @@ print('random_best')
 evaluate_model(random_best, X_train, X_test)
 print('random_best_lemm')
 evaluate_model(random_best_lemm, X_train_lemm, X_test)
+#%%
 # display(plot_confusion_matrix(rf, X_test, y_test, normalize='true', cmap='bone'))
 print('baseline random forest')
 evaluate_model(rf, X_train, X_test)
@@ -363,16 +364,16 @@ print('random forest_lemm')
 evaluate_model(rf_lemm, X_train_lemm, X_test)
 # %%
 # Initializing gridsearch and fitting, and outputting the results and grabbing the best estimator
-gridsearch = GridSearchCV(estimator=RandomForestClassifier(), param_grid=rf_param_grid, 
-                          scoring='precision', cv=5, verbose=1,n_jobs=-1)
-gridsearch.fit(X_train, y_train)
+# gridsearch = GridSearchCV(estimator=RandomForestClassifier(), param_grid=rf_param_grid, 
+#                           scoring='precision', cv=5, verbose=1,n_jobs=-1)
+# gridsearch.fit(X_train, y_train)
 # %%
-display(gridsearch.best_estimator_)
-display(gridsearch.best_score_)
-gridbest = gridsearch.best_estimator_
+# display(gridsearch.best_estimator_)
+# display(gridsearch.best_score_)
+# gridbest = gridsearch.best_estimator_
 
 # %%
-random_best.feature_importances_
+# random_best.feature_importances_
 #%%
 # random_best.featire_importances_[0]
 
@@ -383,14 +384,14 @@ evaluate_model(rf, X_train, X_test)
 
 # %%
 
-feature_shape = rf.feature_importances_.shape[0]
+# feature_shape = rf.feature_importances_.shape[0]
 # %%
-rf.feature_importances_.shape
+# rf.feature_importances_.shape
 # %%
-feature_importances = pd.DataFrame(rf.feature_importances_,
-                                   index = vec_table.iloc[0][:feature_shape],
-                                    columns=['importance']).sort_values('importance',ascending=False)
-feature_importances
+# feature_importances = pd.DataFrame(rf.feature_importances_,
+#                                    index = vec_table.iloc[0][:feature_shape],
+#                                     columns=['importance']).sort_values('importance',ascending=False)
+# feature_importances
 # %%
 # ! reser index to be ve_table columns
 # rf.classes_
@@ -430,38 +431,4 @@ south_token_coefs.to_csv('../capstone-data/lyrics/south_tokens.csv')
 west_token_coefs.to_csv('../capstone-data/lyrics/west_tokens.csv')
 # %%
 evaluate_model(lr, X_train, X_test)
-# %%
-# %%
-df.lyrics = df.lyrics.apply(lambda x: x.split('  '))
-# df.lyrics[1]
-# %%
-df.lyrics[1][7]
-
-# %%
-# %%
-
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
-# %%
 # %%

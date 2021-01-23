@@ -89,6 +89,11 @@ def evaluate_results(model):
     ax.set_yticklabels(labels)
     print(metrics.classification_report(y_test.argmax(axis=1), predictions))
 
+def print_shapes(x1, y1, x2, y2):
+    print(x1.shape)
+    print(y1.shape)
+    print(x2.shape)
+    print(y2.shape)
 # def prepare_confusion_matrix(model):
 
 #     predictions = model.predict(X_test).round()
@@ -96,28 +101,16 @@ def evaluate_results(model):
 #     return cm, predictions
     # test_generator.class_indices
   
-# %%
-# labels = {'East': 0, 'Mid-West': 1, 'South': 2, 'West': 3}
-# for value in list(labels.values()):
-#     print(list(labels.keys())[value])
+
 # %% [markdown]
 ## Setting up paths
 
 # %%
 
-train_east = os.path.join('../capstone-data/music/TRAIN/East')
-train_west = os.path.join('../capstone-data/music/TRAIN/West')
-train_mid_west = os.path.join('../capstone-data/music/TRAIN/Mid-west')
-train_south = os.path.join('../capstone-data/music/TRAIN/South')
-
-
-# test_east = os.path.join('../capstone-data/music/TEST/East')
-# test_west = os.path.join('../capstone-data/music/TEST/West')
-# test_mid_west = os.path.join('../capstone-data/music/TEST/Mid-west')
-# test_south = os.path.join('../project_image_data/TEST/South')
-
-# val_normal = os.path.join('../project_image_data/val/NORMAL')
-# val_pneumonia = os.path.join('../project_image_data/val/PNEUMONIA')
+train_east = os.path.join('../capstone-data/music - color/TRAIN/East')
+train_west = os.path.join('../capstone-data/music - color/TRAIN/West')
+train_mid_west = os.path.join('../capstone-data/music - color/TRAIN/Mid-west')
+train_south = os.path.join('../capstone-data/music - color/TRAIN/South')
 
 all_paths = [train_east, train_west, train_mid_west, train_south]
 
@@ -125,8 +118,6 @@ all_paths = [train_east, train_west, train_mid_west, train_south]
 ## Show number of files for each class in each folder
 # %%
 
-# for path in all_paths:
-#     print(f'{path} has  {len(os.listdir(path))}  files')
 for path in all_paths:
     png_count = len(glob.glob(os.path.join(path, '**/*.png'), recursive=True))
     print(path,':', png_count)    
@@ -138,43 +129,25 @@ for path in all_paths:
 # All images will be rescaled by 1./255
 train_datagen = ImageDataGenerator(rescale=1./255)
 
-# test_val_datagen = ImageDataGenerator(rescale=1./255,
-#                                       validation_split=0.2)
 
-
-
-# Flow training images in batches of 128 using train_datagen generator
-train_generator = train_datagen.flow_from_directory('../capstone-data/music - Copy/TRAIN/',  # Source dir for training images
-                                                  target_size=(64, 64),  # All images will be resized to 150x150
-                                                  batch_size=4273, #2086
-                                                #   color_mode='grayscale',
-                                                  # Since we use categorical_crossentropy loss, we need binary labels
-                                                  class_mode='categorical',
-                                                  subset='training',
-                                                  shuffle=True)
+train_generator = train_datagen.flow_from_directory('../capstone-data/music - color/TRAIN/', 
+                                                    target_size=(64, 64), 
+                                                    batch_size=4273, 
+                                                    class_mode='categorical',
+                                                    subset='training',
+                                                    shuffle=True)
 
 X_all,y_all = next(train_generator)
-# X_test,y_test = next(test_generator)
-# X_val,y_val = next(val_generator)
 
-
-# %%
-
+#%%
 
 X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=0.4, random_state=42, shuffle=True)
+print_shapes(X_train, y_train, X_test, y_test)
 # %%
-print(X_train.shape)
-print(y_train.shape)
-print(X_test.shape)
-print(y_test.shape)
 # %%
 X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.4, random_state=42, shuffle=True) 
+print_shapes(X_test, y_test, X_val, y_val)
 # %%
-
-print(X_test.shape)
-print(y_test.shape)
-print(X_val.shape)
-print(y_val.shape)
 # %% [markdown]
 ## Show pictures
 
@@ -289,7 +262,7 @@ plot_results(history3.history)
 evaluate_results(Adam_32_32_128_D16)
 
 # %%
-train_generator = train_datagen.flow_from_directory('../capstone-data/music - Copy/TRAIN/',
+train_generator = train_datagen.flow_from_directory('../capstone-data/music - color/TRAIN/',
                                                   target_size=(256, 256), 
                                                   batch_size=4273, 
                                                   class_mode='categorical',
