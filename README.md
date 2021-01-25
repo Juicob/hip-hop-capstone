@@ -17,17 +17,51 @@ The goal of this project is to be able to classify music by regional style to th
 
 ## Data
 
-The data consists of over 9000 lyrics and other features gathered from [Genius](genius.com) and my personal collection of artists discographies. After removing mix-tapes, and other tracks such as intros, outros, interludes, and skits, I ended up with almost 4000 tracks.
+The data consists of over 9000 lyrics and other features gathered from [Genius](genius.com) and my personal collection of artists discographies. After removing mix-tapes, and other tracks such as intros, outros, interludes, and skits, I ended up with almost 4000 tracks that I converted into mel spectograms as shown below.
 
-ADD PICTURES OF SPECTORGRAMS
+
+<br>
+<br>
+<br>
+
+All Falls Down - Kanye West - Mid-West
+
+![NLP-Accuracy](./images/allfallsdown-ye.png)
+
+Hard Knock Life - Jay-Z - East
+
+![NLP-Accuracy](./images/hkl-jay.png)
+
+Keep Ya Head Up - 2Pac - West
+
+![NLP-Accuracy](./images/keepyaheadup-2Pac.png)
+
+Southernplayalisticadillacmuzik - Outkast - South
+
+![NLP-Accuracy](./images/southernplayalistic-outkast.png)
+
 
 
 ## Results
 
-ADD PICTURES OF CONFUSION MATRICES
-
 After several iterations, our best NLP model was a random forest with a 73% accuracy rate of 95% while our computer vision portion was a CNN with an accuracy of 53%.
-![CNN](./images/cnn accuracy.png)
+<br>
+<br>
+<br>
+### Confusion matrix for random forest model to classify lyrics
+
+![NLP-Accuracy](./images/nlp-confusion-matrix.png)
+<br>
+<br>
+<br>
+<br>
+### Confusion matrix for Convolution Neural Network to classify audio
+
+
+![CNN-Accuracy](./images/cnn-accuracy.png)
+![CNN Confusion Matrix](./images/cnn-confusion-matrix.png)
+
+
 
 I would like to try again using the pretrained model BERT to see if I can increase the accuracy for my NLP model. For the computer vision side, I think using the pretrained model ResNet34 would gain considerable improvements, but before that I would like to see how the results are affected by adding more data. I don't believe that around 1000 images for each of the 4 regions seems like quite enough, and I think my models would benefit from additional data. Another thing I would like to do is identify which tracks have featured artists. Because the entire song is converted into an image, there are songs feature artists from different regions on the same track which I believe skews my results.
 
