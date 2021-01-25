@@ -311,10 +311,8 @@ evaluate_results(Adam256_32_32_32_D3_64)
 # %% [markdown]
 # After iterating over and running all the models I viewed the results of each as well as their compared accuracy/loss graphs via tensorboard. I found that the "Adam_32_32_32_32" model performed the best and stored the model within a separate filepath to ensure it doesn't get written over or compromised..
 # %%
-best_model = tf.keras.models.load_model('Adam_32_32_32_32__best')
 
 # %%
-evaluate_results(best_model)
 
 # %% [markdown]
 ## Creating network topology visual 
