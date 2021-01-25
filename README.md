@@ -25,9 +25,9 @@ ADD PICTURES OF SPECTORGRAMS
 ## Results
 
 ADD PICTURES OF CONFUSION MATRICES
-![report](./images/report.png)
 
 After several iterations, our best NLP model was a random forest with a 73% accuracy rate of 95% while our computer vision portion was a CNN with an accuracy of 53%.
+![CNN](./images/cnn accuracy.png)
 
 I would like to try again using the pretrained model BERT to see if I can increase the accuracy for my NLP model. For the computer vision side, I think using the pretrained model ResNet34 would gain considerable improvements, but before that I would like to see how the results are affected by adding more data. I don't believe that around 1000 images for each of the 4 regions seems like quite enough, and I think my models would benefit from additional data. Another thing I would like to do is identify which tracks have featured artists. Because the entire song is converted into an image, there are songs feature artists from different regions on the same track which I believe skews my results.
 
