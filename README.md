@@ -1,4 +1,4 @@
-# Classifying Hip-Hop Tracks By Regional Style Using Computer Vision and Natural Langauge Processing
+# Classifying Hip-Hop Tracks By Regional Style Using CNNs and NLP
 
 
 ## Overview
