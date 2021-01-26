@@ -11,13 +11,17 @@ You don't need to be a fan of hip-hop to experience the power of music. Stevie W
 
 This project is a journey into classifying hip hop based on regional styles using computer vision and natural language processing. 
 
+Click on the dashboard below to go through an interactive storyboard of my project.
+
+[![hiphopregions storyboard](https://i.imgur.com/yZ1wOff.png)](https://app.powerbi.com/view?r=eyJrIjoiZjA3N2Q4YjItNjg3ZC00MzNhLTk5ZDEtZjBlMmE4OWU0MDJlIiwidCI6IjdkYTgxNGVmLWJkNGEtNDkzYy1hNTY3LTM3OGU0YzA4Y2VlOSIsImMiOjN9&pageName=ReportSection194d01d4807efd56979a)
+
 ## Business Problem
 
 The goal of this project is to be able to classify music by regional style to then be used by streaming services or Digital Service Provider's (DSP's) to create more accurate sub-genre playlists that will better cater to their target audience. 
 
 ## Data
 
-The data consists of over 9000 lyrics and other features gathered from [Genius](genius.com) and my personal collection of artists discographies. After removing mix-tapes, and other tracks such as intros, outros, interludes, and skits, I ended up with almost 4000 tracks that I converted into mel spectograms as shown below.
+The data consists of over 9000 lyrics and other features gathered from [Genius](genius.com) and my personal collection of artists discographies. After removing mix-tapes, and other tracks such as intros, outros, interludes, and skits, I ended up with almost 4000 tracks that I converted into mel spectograms to feed into the CNN. Here are a few samples of popular songs from each region shown below.
 
 
 <br>
