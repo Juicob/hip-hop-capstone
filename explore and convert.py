@@ -86,3 +86,10 @@ for region in os.listdir(train_path)[:]:
 
         # print(region_path)
 # %%
+
+y, sr = librosa.load(r'D:\Python_Projects\flatiron\class-materials\capstone-data\music\TRAIN\East\Jay-Z\(1998)Vol. 2 ~ Hard Knock Life\02 Hard Knock Life (The Ghetto Anthem).mp3', mono=True)
+librosa.display.waveplot(y[:500000].flatten(), sr=sr)
+
+
+# %%
+len(y)

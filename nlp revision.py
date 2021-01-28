@@ -411,6 +411,11 @@ random_best.fit(X_train.todense(), y_train)
 
 
 # %%
+importances = pd.Series(random_best.feature_importances_, index=vectorizer.get_feature_names()).sort_values()
+importances.tail(25).plot(kind='barh')
+# %%
+
+# %%
 df_grouped.index
 # %%
 def create_wordcloud(corpus, colormap='Blues'):
@@ -448,9 +453,12 @@ evaluate_model(random_best, X_train, X_test)
 # evaluate_model(random_best_lemm, X_train_lemm, X_test)
 
 
+# %%
+
 # %% [markdown]
 ## Conclusion
 
 # I tuned the final random forest model and came out with a decent score at 75%. I think scrubbing the data to remove featured artists would be a good way to ensure that only the main artists lyrical content are included within the data. 
 
 # Another good way to increase accuracy would be getting additional data. It makes sense that the East and Mid-West regions have lower scores since those are the two regions where I have less data.
+# %%
