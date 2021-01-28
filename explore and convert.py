@@ -86,10 +86,23 @@ for region in os.listdir(train_path)[:]:
 
         # print(region_path)
 # %%
-
+# waveplot sample
+plt.figure(figsize=(10,4))
 y, sr = librosa.load(r'D:\Python_Projects\flatiron\class-materials\capstone-data\music\TRAIN\East\Jay-Z\(1998)Vol. 2 ~ Hard Knock Life\02 Hard Knock Life (The Ghetto Anthem).mp3', mono=True)
 librosa.display.waveplot(y[:500000].flatten(), sr=sr)
 
 
 # %%
-len(y)
+# mel spec sample - maybe rerun on all files in the future to classify snippets of songs instead of the entire thing
+y, sr = librosa.load(r'D:\Python_Projects\flatiron\class-materials\capstone-data\music\TRAIN\East\Jay-Z\(1998)Vol. 2 ~ Hard Knock Life\02 Hard Knock Life (The Ghetto Anthem).mp3', sr=32000, mono=True)
+melspec = librosa.feature.melspectrogram(y[500000:1500000], sr=sr, n_mels = 128)
+melspec = librosa.power_to_db(melspec).astype(np.float32)
+
+fig = plt.figure(figsize=(20,4))
+fig2 = plt.figure()
+# canvas = FigureCanvas(fig)
+ax = fig.add_subplot(111)
+ax2 = fig2.add_subplot(111)
+img = librosa.display.specshow(melspec, ax=ax, sr=sr, fmax=16000, cmap='gist_ncar') # x_axis='time', y_axis='mel'
+img2 = librosa.display.specshow(melspec, ax=ax2, sr=sr, fmax=16000, cmap='gist_ncar') # x_axis='time', y_axis='mel'
+fig.savefig(fr'../capstone-data/mel-specs/testttt.png')
