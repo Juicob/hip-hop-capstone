@@ -13,7 +13,7 @@ This project is a journey into classifying hip hop based on regional styles usin
 
 Click on the dashboard below to go through an interactive storyboard of my project.
 
-[![hiphopregions storyboard](https://i.imgur.com/yZ1wOff.png)](https://app.powerbi.com/view?r=eyJrIjoiZjA3N2Q4YjItNjg3ZC00MzNhLTk5ZDEtZjBlMmE4OWU0MDJlIiwidCI6IjdkYTgxNGVmLWJkNGEtNDkzYy1hNTY3LTM3OGU0YzA4Y2VlOSIsImMiOjN9&pageName=ReportSection194d01d4807efd56979a)
+[![hiphopregions storyboard](https://i.imgur.com/yZ1wOff.png)](https://app.powerbi.com/view?r=eyJrIjoiZGYwZDcxMmYtMmZhMC00YjA5LWFhNWItYWMwOGIxYzIyNTM3IiwidCI6IjdkYTgxNGVmLWJkNGEtNDkzYy1hNTY3LTM3OGU0YzA4Y2VlOSIsImMiOjN9&pageName=ReportSection194d01d4807efd56979a)
 
 ## Business Problem
 
